@@ -1,0 +1,184 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+
+  BucketArn:
+    Type: String
+  BucketBusinessDataArn:
+    Type: String
+    Default: ''
+  KMSArn:
+    Type: String
+
+  DatalakeAdminUser:
+    Type: String
+
+  UserPassword:
+    Type: String
+    Default: PublicisSapient2021!
+
+Outputs:
+
+  DataAnalystUserName:
+    Value: !Ref DataAnalystUser
+  DataAnalystUserPassword:
+    Value: !Ref UserPassword
+
+  DatabaseCreatorUserName:
+    Value: !Ref DatabaseCreator
+  DatabaseCreatorUserPassword:
+    Value: !Ref UserPassword
+
+Conditions:
+  isBusinessData: !Not [ !Equals [!Ref BucketBusinessDataArn, ""] ]
+
+Resources:
+
+  DatalakeAdministrator:
+    Type: AWS::LakeFormation::DataLakeSettings
+    Properties:
+      Admins:
+        - DataLakePrincipalIdentifier: !Sub "arn:aws:iam::${AWS::AccountId}:user/${DatalakeAdminUser}"
+
+  DatalakeLocationRegistration:
+    Type: AWS::LakeFormation::Resource
+    Properties:
+      ResourceArn: !Ref BucketArn
+      RoleArn: !GetAtt LakeformationRole.Arn
+      UseServiceLinkedRole: False
+
+  BusinessDataLocationRegistration:
+    Condition: isBusinessData
+    Type: AWS::LakeFormation::Resource
+    Properties:
+      ResourceArn: !Ref BucketBusinessDataArn
+      RoleArn: !GetAtt LakeformationRole.Arn
+      UseServiceLinkedRole: False
+
+  LakeformationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}-lakeformation"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lakeformation.amazonaws.com
+                - glue.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: AllowS3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowListBucket
+                Effect: Allow
+                Action:
+                  - "s3:ListBucket"
+                Resource: "*"
+              - Sid: AllowBucketContentAccess
+                Effect: Allow
+                Action:
+                  - "s3:PutObject"
+                  - "s3:GetObject"
+                  - "s3:DeleteObject"
+                Resource:
+                  - !Sub "${BucketArn}/*"
+              - !If
+                - isBusinessData
+                - Sid: AllowBucketBusinessDataContentAccess
+                  Effect: Allow
+                  Action:
+                    - "s3:PutObject"
+                    - "s3:GetObject"
+                    - "s3:DeleteObject"
+                  Resource:
+                    - !Sub "${BucketBusinessDataArn}/*"
+                - !Ref AWS::NoValue
+        - PolicyName: AllowKMS
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowKMS
+                Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:ReEncrypt*"
+                  - "kms:GenerateDataKey*"
+                  - "kms:DescribeKey"
+                Resource: !Ref KMSArn
+
+  BusinessDataPolicy:
+    Condition: isBusinessData
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allow Access to business-data bucket
+      ManagedPolicyName: !Sub "${Environment}-business-data-access"
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowKMS
+            Effect: Allow
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: !Ref KMSArn
+          - Sid: AllowListBucket
+            Effect: Allow
+            Action:
+              - "s3:ListBucket"
+            Resource: "*"
+          - Sid: AllowBucketContentAccess
+            Effect: Allow
+            Action:
+              - "s3:*"
+              - "s3:GetObject"
+              - "s3:DeleteObject"
+            Resource:
+              - !Sub "${BucketBusinessDataArn}/*"
+
+  DataAnalystUser:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: data_analyst
+      LoginProfile:
+        Password: !Ref UserPassword
+        PasswordResetRequired: false
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
+        - !If
+          - isBusinessData
+          - !Ref BusinessDataPolicy
+          - !Ref AWS::NoValue
+
+  DataAnalystUserPermissions:
+    Type: AWS::LakeFormation::Permissions
+    Properties:
+      DataLakePrincipal:
+        DataLakePrincipalIdentifier: !GetAtt DataAnalystUser.Arn
+      Permissions:
+        - SELECT
+      Resource:
+        TableResource:
+          DatabaseName: titanic
+          Name: passenger
+
+  DatabaseCreator:
+    Type: AWS::IAM::User
+    Properties:
+      UserName: database_creator
+      LoginProfile:
+        Password: !Ref UserPassword
+        PasswordResetRequired: false
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonAthenaFullAccess
