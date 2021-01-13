@@ -1,0 +1,7 @@
+stack_name: "{{ var.environment }}-vpc"
+template_path: vpc.yaml
+parameters:
+  Environment: {{ var.environment }}
+  CidrBlock: 192.168.15.0
+  HAMode: "false"
+  CreatePublicsSubnets: "false"

@@ -24,6 +24,7 @@ usage() {
     echo ""
     echo "DEPLOY"
     echo "  - deploy-lakeformation <ENVIRONMENT>: deploy lakeformation stack"
+    echo "  - deploy-vpc <ENVIRONMENT>: deploy vpc stack"
 
 
 }
@@ -45,13 +46,12 @@ setup-create-virtualenv() {
 
 deploy-lakeformation() {
     ENVIRONMENT=$1
-
-    if [[ -z "$ENVIRONMENT" ]] ; then
-        echo "Missing required parameter. ENVIRONMENT"
-        exit 3
-    fi
-
     deploy_cloudformation_lakeformation "$AWS_PROFILE" "$ENVIRONMENT"
+}
+
+deploy-vpc() {
+    ENVIRONMENT=$1
+    deploy_cloudformation_vpc "$AWS_PROFILE" "$ENVIRONMENT"
 }
 
 

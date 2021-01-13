@@ -43,7 +43,7 @@ function assume_role() {
 }
 
 
-# Usage : deploy_cloudformation_exploitation PROFILE ENVIRONMENT
+# Usage : deploy_cloudformation_lakeformation PROFILE ENVIRONMENT
 function deploy_cloudformation_lakeformation() {
     PROFILE=$1
     ENV=$2
@@ -56,8 +56,26 @@ function deploy_cloudformation_lakeformation() {
 
     EXEC_PWD=$PWD
     cd "$BASE_PATH/deploy/cloudformation/"
-    AWS_PROFILE=$PROFILE sceptre --debug --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/s3.yaml
-    AWS_PROFILE=$PROFILE sceptre --debug --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/lakeformation.yaml
+    AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/s3.yaml
+    AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/lakeformation.yaml
+
+    cd ${EXEC_PWD}
+}
+
+# Usage : deploy_cloudformation_vpc PROFILE ENVIRONMENT
+function deploy_cloudformation_vpc() {
+    PROFILE=$1
+    ENV=$2
+    echo "Deploy cloudformation for vpc with parameters PROFILE=$PROFILE ENV=$ENV"
+
+    if [[ -z "$PROFILE" ]] || [[ -z "$ENV" ]] ; then
+        echo "Missing required parameter. PROFILE or ENVIRONMENT is missing"
+        exit 3
+    fi
+
+    EXEC_PWD=$PWD
+    cd "$BASE_PATH/deploy/cloudformation/"
+    AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes infra/vpc.yaml
 
     cd ${EXEC_PWD}
 }
