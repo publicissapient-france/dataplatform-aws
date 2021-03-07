@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-
+from models.IngestionEvent import IngestionEvent
 import boto3
 
 from utils.logging import get_logger

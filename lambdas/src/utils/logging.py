@@ -89,7 +89,7 @@ set_component(os.environ.get('COMPONENT'))
 set_environment(os.environ.get('ENVIRONMENT'))
 
 
-def get_logger(logger_name: str = 'sanofi.datalake'):
+def get_logger(logger_name: str = 'fr.publicissapient'):
     logger = logging.getLogger(logger_name)
     logger.setLevel(os.environ.get("LOGGER_LEVEL", "DEBUG"))
 

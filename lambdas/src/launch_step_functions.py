@@ -1,4 +1,5 @@
 from utils.logging import get_logger
+from models.IngestionEvent import IngestionEvent
 import boto3
 import os
 
@@ -18,24 +19,25 @@ def lambda_handler(event, context):
 
 def process(event, sfn_arn: str):
     sfn_client = boto3.client('stepfunctions')
-    bucket = event['Records'][0]['s3']['bucket']
+    bucket = event['Records'][0]['s3']['bucket']['name']
     key = event['Records'][0]['s3']['object']['key']
 
-    step_functions_input = {
-        "s3_bucket": "",
-        "object_key": "",
-        "correlation_id": ""
-    }
+    step_functions_input = IngestionEvent(s3_bucket=bucket, object_key=key)
 
-    start(sfn_client, sfn_arn)
+    execution_name = f"{extract_source_from_bucket(bucket)}-{step_functions_input.correlation_id}"
+    start(sfn_client, sfn_arn, execution_name, step_functions_input)
 
 
-def start(sfn_client, sfn_arn: str, execution_name: str, sfn_input: str):
+def extract_source_from_bucket(bucket: str):
+    return bucket.split("-")[2]
+
+
+def start(sfn_client, sfn_arn: str, execution_name: str, sfn_input: IngestionEvent):
     try:
         sfn_response = sfn_client.start_execution(
             stateMachineArn=sfn_arn,
             name=execution_name,
-            input=sfn_input
+            input=sfn_input.to_json()
         )
 
         logger.info(f"Start step functions {sfn_arn}",
