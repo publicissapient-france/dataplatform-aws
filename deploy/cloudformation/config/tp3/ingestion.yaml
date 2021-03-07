@@ -6,3 +6,4 @@ parameters:
   KMSKeyArn: !stack_output_external {{ var.environment }}-dataplatform-s3::KMSKeyArn
   IngestionWorkflowRegistry: !stack_output_external {{ var.environment }}-ecr::IngestionWorkflowRegistry
   Version: "{{ var.Version }}"
+  EventbusName: "jpinsolle"
