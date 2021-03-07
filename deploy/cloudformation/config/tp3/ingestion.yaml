@@ -1,0 +1,8 @@
+stack_name: "{{ var.environment }}-ingestion-workflow"
+template_path: lambda/ingestion.yaml
+parameters:
+  Environment: {{ var.environment }}
+  BucketPrefix: "{{ var.trainee }}-source"
+  KMSKeyArn: !stack_output_external {{ var.environment }}-dataplatform-s3::KMSKeyArn
+  IngestionWorkflowRegistry: !stack_output_external {{ var.environment }}-ecr::IngestionWorkflowRegistry
+  Version: "{{ var.Version }}"

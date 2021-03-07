@@ -1,0 +1,2 @@
+project_code: lambba
+region: {{ environment_variable.AWS_REGION | default("eu-west-1") }}

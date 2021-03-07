@@ -1,0 +1,2 @@
+stack_name: "{{ var.environment }}-ecr"
+template_path: ecr.yaml

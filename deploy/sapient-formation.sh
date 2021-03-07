@@ -8,23 +8,36 @@ export BASE_PATH=$(realpath $SCRIPT_DIR/../)
 
 ACTION=$1
 ENVIRONMENT=$2
+PACKAGE_VERSION="$(date +%Y%m%d%H%M%S)"
 
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source $DIR/deploy_functions.sh
+
+AWS_REGION=eu-west-1
 
 usage() {
     echo "Run the script with:"
     echo "`basename "$0"` <ACTION> "
     echo ""
     echo "SETUP"
-    echo "  - setup-install-python-requirements: install python requirements in the current virtualenv"
+    echo "  - setup-install-lambda-python-requirements: install python requirements in the current virtualenv"
     echo "  - setup-create-virtualenv: create python virtualenv"
-
 
     echo ""
     echo "DEPLOY"
     echo "  - deploy-lakeformation <ENVIRONMENT>: deploy lakeformation stack"
     echo "  - deploy-vpc <ENVIRONMENT>: deploy vpc stack"
+    echo "  - deploy-ecr: deploy ecr"
+
+    echo ""
+    echo "TP 1"
+    echo "  - tp3-deploy-s3 <ENVIRONMENT>: deploy the s3 stack for a source"
+
+    echo ""
+    echo "TP 3"
+    echo "  - tp3-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
+    echo "  - tp3-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
+    echo "  - tp3-deploy-ingestion-workflow <ENVIRONMENT>: deploy the ingestion workflow"
 
 
 }
@@ -32,8 +45,8 @@ usage() {
 ########################################################################################################################
 # SETUP
 ########################################################################################################################
-setup-install-python-requirements() {
-    install_python_requirements
+setup-install-lambda-python-requirements() {
+    install_lambda_python_requirements
 }
 
 setup-create-virtualenv() {
@@ -51,7 +64,38 @@ deploy-lakeformation() {
 
 deploy-vpc() {
     ENVIRONMENT=$1
-    deploy_cloudformation_vpc "$AWS_PROFILE" "$ENVIRONMENT"
+    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "infra/vpc.yaml"
+}
+
+deploy-ecr() {
+    ENVIRONMENT="dev"
+    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "infra/ecr.yaml"
+}
+
+########################################################################################################################
+#   TP 1
+########################################################################################################################
+tp3-deploy-s3() {
+    ENVIRONMENT=$1
+    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/s3.yaml"
+}
+
+########################################################################################################################
+#   TP 3
+########################################################################################################################
+tp3-deploy-custom-s3-notification-custom-resource() {
+    ENVIRONMENT=$1
+    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp3/s3-notification-updater.yaml"
+}
+
+tp3-build-ingestion-workflow() {
+    build_lambda "$AWS_PROFILE" "$AWS_REGION" "$ENVIRONMENT" "$PACKAGE_VERSION"
+}
+
+tp3-deploy-ingestion-workflow() {
+    ENVIRONMENT=$1
+    VERSION=$2
+    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp3/ingestion.yaml" "$VERSION"
 }
 
 

@@ -1,0 +1,176 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+  Module:
+    Type: String
+    Default: "Ingestion"
+  BucketPrefix:
+    Type: String
+  KMSKeyArn:
+    Type: String
+  IngestionWorkflowRegistry:
+    Type: String
+    Description: "ECR registry for lambdas 767178862217.dkr.ecr.eu-west-1.amazonaws.com/ingestion-workflow"
+  Version:
+    Type: String
+
+Resources:
+
+  LambdaPartition:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Sub "${Environment}-${Module}-exploitation-full-replay-compute-parameters"
+      Code:
+        ImageUri: !Sub "${IngestionWorkflowRegistry}:${Version}"
+      Description: !Sub "Lambda that copy/paste file into right S3 prefixes"
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          VERSION: !Ref Version
+          LOG_TYPE: JSON
+      ImageConfig:
+        Command:
+          - partition_data.lambda_handler
+      MemorySize: 128
+      Timeout: 30
+      Role: !GetAtt LambdaExploitationRole.Arn
+      PackageType: Image
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  LambdaExploitationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}-${Module}-lambda"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: S3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowS3
+                Effect: Allow
+                Action:
+                  - "s3:HeadObject"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:PutObjectAcl"
+                  - "s3:ListBucket"
+                Resource:
+                  - !Sub "arn:aws:s3:::${BucketPrefix}*"
+        - PolicyName: KMS
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowKMS
+                Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:GenerateDataKey*"
+                Resource: !Ref KMSKeyArn
+
+#  FullReplayGraph:
+#    Type: "AWS::StepFunctions::StateMachine"
+#    Properties:
+#      StateMachineName: !Sub "${Environment}-exploitation-full-replay"
+#      DefinitionString: !Sub
+#        - |
+#          {
+#            "Comment": "Step Functions which fully reconverts raw-data to prepared-data",
+#            "StartAt": "Compute Parameters",
+#            "States": {
+#              "Compute Parameters": {
+#                  "Type": "Task",
+#                  "Resource": "${FullReplayComputeParametersLambdaArn}",
+#                  "Next": "Glue Job"
+#              },
+#              "Glue Job": {
+#                  "Type": "Task",
+#                  "Resource": "arn:aws:states:::glue:startJobRun.sync",
+#                  "Parameters": {
+#                    "JobName": "${Environment}-raw-data-to-prepared-data",
+#                    "Arguments": {
+#                      "--environment.$": "$.environment",
+#                      "--source_name.$": "$.source_name",
+#                      "--s3_bucket_name.$": "$.bucket",
+#                      "--ingestion_internal_bucket_name": "${IngestionInternalBucket}",
+#                      "--kms_key.$": "$.kms_key",
+#                      "--partitions_list_by_table_key.$": "$.partitions_key",
+#                      "--table_configs.$": "$.table_configs",
+#                      "--prepared_data_partitioning_disabled.$": "$.prepared_data_partitioning_disabled",
+#                      "--tracing_id.$": "$.tracing_id"
+#                    },
+#                    "MaxCapacity": 10
+#                  },
+#                  "ResultPath": "$.glue_output",
+#                  "Next": "Start Prepared crawler"
+#              },
+#              "Start Prepared crawler": {
+#                  "Type": "Task",
+#                  "Resource": "${StartPreparedDataCrawlerLambdaArn}",
+#                  "Next": "CheckPreparedCrawlerCompletion"
+#              },
+#              "CheckPreparedCrawlerCompletion": {
+#                  "Type": "Task",
+#                  "Resource": "${CheckPreparedCrawlerCompletionLambdaArn}",
+#                  "Next": "Is Prepared Crawling Completed?"
+#              },
+#              "Is Prepared Crawling Completed?": {
+#                  "Type": "Choice",
+#                  "Choices": [
+#                    {
+#                      "And": [
+#                        {
+#                          "Variable": "$.step",
+#                          "StringEquals": "Data Crawling"
+#                        },
+#                        {
+#                          "Variable": "$.status",
+#                          "StringEquals": "Succeeded"
+#                        }
+#                      ],
+#                      "Next": "PreparedDataPostProcessing"
+#                    }
+#                  ],
+#                  "Default": "WaitToProceedPreparedCrawling"
+#              },
+#              "WaitToProceedPreparedCrawling": {
+#                  "Type": "Wait",
+#                  "Seconds": 20,
+#                  "Next": "CheckPreparedCrawlerCompletion"
+#              },
+#              "PreparedDataPostProcessing": {
+#                    "Type": "Task",
+#                    "Resource": "${PreparedDataCrawlerPostProcessLambdaArn}",
+#                    "Next": "Processus End"
+#              },
+#              "Processus End": {
+#                  "Type": "Pass",
+#                  "End": true
+#              }
+#            }
+#          }
+#        - FullReplayComputeParametersLambdaArn: !GetAtt FullReplayComputeParametersLambda.Arn
+#          StartPreparedDataCrawlerLambdaArn: !GetAtt StartPreparedDataCrawlerLambda.Arn
+#          CheckConversionCompletionLambdaArn: !GetAtt CheckConversionCompletionLambda.Arn
+#          CheckPreparedCrawlerCompletionLambdaArn: !GetAtt CheckPreparedCrawlerCompletionLambda.Arn
+#          PreparedDataCrawlerPostProcessLambdaArn: !GetAtt PreparedDataCrawlerPostProcessLambda.Arn
+#      RoleArn: !GetAtt StepFunctionsRole.Arn
+
+
