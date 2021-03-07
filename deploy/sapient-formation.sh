@@ -31,7 +31,7 @@ usage() {
 
     echo ""
     echo "TP 1"
-    echo "  - tp3-deploy-s3 <ENVIRONMENT>: deploy the s3 stack for a source"
+    echo "  - tp1-deploy-s3 <ENVIRONMENT>: deploy the s3 stack for a source"
 
     echo ""
     echo "TP 3"
@@ -75,7 +75,7 @@ deploy-ecr() {
 ########################################################################################################################
 #   TP 1
 ########################################################################################################################
-tp3-deploy-s3() {
+tp1-deploy-s3() {
     ENVIRONMENT=$1
     deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/s3.yaml"
 }

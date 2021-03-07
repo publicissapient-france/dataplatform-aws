@@ -1,20 +1,11 @@
 import re
-import uuid
 from pathlib import Path
-from dataclasses import dataclass
 
 import boto3
 
 from utils.logging import get_logger
 
 logger = get_logger()
-
-
-@dataclass
-class IngestionEvent:
-    s3_bucket: str
-    object_key: str
-    correlation_id: str = str(uuid.uuid4())
 
 
 def move_object(s3_resource, bucket: str, source_key: str, destination_key: str):
@@ -45,7 +36,7 @@ def extract_file_information(source_object_key):
         source_object_key)
 
 
-def lambda_handler(event: IngestionEvent, context):
+def lambda_handler(event, context):
     logger.debug(f"Event={event}")
     logger.debug(f"Context={context}")
 

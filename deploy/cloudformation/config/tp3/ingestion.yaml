@@ -1,5 +1,5 @@
 stack_name: "{{ var.environment }}-ingestion-workflow"
-template_path: lambda/ingestion.yaml
+template_path: tp3/ingestion.yaml
 parameters:
   Environment: {{ var.environment }}
   BucketPrefix: "{{ var.trainee }}-source"
