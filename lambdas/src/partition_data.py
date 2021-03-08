@@ -41,8 +41,7 @@ def lambda_handler(event, context):
     logger.debug(f"Context={context}")
 
     try:
-
-        process(IngestionEvent(s3_bucket=event['s3_bucket'], object_key=event['object_key']))
+        process(IngestionEvent.from_json(event))
     except Exception as e:
         logger.exception('An error occurred')
         raise e

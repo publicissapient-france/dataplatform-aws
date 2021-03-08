@@ -11,20 +11,26 @@ def lambda_handler(event, context):
     logger.debug(f"Context={context}")
 
     try:
-        process(event=event, sfn_arn=os.environ['STEP_FUNCTIONS_ARN'])
+        process(event=event, sfn_arn=os.environ['STEP_FUNCTIONS_ARN'], environment=os.environ['ENVIRONMENT'])
     except Exception as e:
         logger.exception('An error occurred')
         raise e
 
 
-def process(event, sfn_arn: str):
+def process(event, sfn_arn: str, environment: str):
     sfn_client = boto3.client('stepfunctions')
     bucket = event['Records'][0]['s3']['bucket']['name']
     key = event['Records'][0]['s3']['object']['key']
 
-    step_functions_input = IngestionEvent(s3_bucket=bucket, object_key=key)
+    datasource_name = extract_source_from_bucket(bucket)
+    step_functions_input = IngestionEvent(
+        environment=environment,
+        datasource_name=datasource_name,
+        s3_bucket=bucket,
+        object_key=key
+    )
 
-    execution_name = f"{extract_source_from_bucket(bucket)}-{step_functions_input.correlation_id}"
+    execution_name = f"{datasource_name}-{step_functions_input.correlation_id}"
     start(sfn_client, sfn_arn, execution_name, step_functions_input)
 
 

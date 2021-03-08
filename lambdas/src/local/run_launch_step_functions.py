@@ -15,4 +15,4 @@ event = {'Records': [{
             'sequencer': '006044FC998CEF24B2'}}
     }]}
 
-launch_step_functions.process(event, "arn:aws:states:eu-west-1:767178862217:stateMachine:dev-ingestion-workflow")
+launch_step_functions.process(event, "arn:aws:states:eu-west-1:767178862217:stateMachine:dev-ingestion-workflow", "test")

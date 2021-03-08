@@ -15,9 +15,9 @@ event = {
         'stateMachineArn': 'arn:aws:states:eu-west-1:767178862217:stateMachine:dev-ingestion-workflow',
         'name': 'titanic-6e7b0e6f-0ca7-4294-a084-924057d871f2', 'status': 'SUCCEEDED', 'startDate': 1615148850582,
         'stopDate': 1615148854726,
-        'input': '{\"s3_bucket\": \"jpinsolle-source-titanic-dev\", \"object_key\": \"incoming/2021-03-06__passengers.csv\", \"correlation_id\": \"6e7b0e6f-0ca7-4294-a084-924057d871f2\"}',
+        'input': '{\"environment\": \"test\", \"datasource_name\": \"titanic\", \"s3_bucket\": \"jpinsolle-source-titanic-dev\", \"object_key\": \"incoming/2021-03-06__passengers.csv\", \"correlation_id\": \"6e7b0e6f-0ca7-4294-a084-924057d871f2\"}',
         'inputDetails': {'included': True}, 'output': 'null', 'outputDetails': {'included': True}
     }
 }
 
-notify_end_process.process(event)
+notify_end_process.process(event, "jinsolle")
