@@ -46,8 +46,9 @@ function deploy_generic_stack() {
     ENV=$2
     TEMPLATE_PATH=$3
     VERSION=$4
+    SOURCE=$5
 
-    echo "Deploy cloudformation $TEMPLATE_PATH with parameters PROFILE=$PROFILE ENV=$ENV"
+    echo "Deploy cloudformation $TEMPLATE_PATH with parameters PROFILE=$PROFILE ENV=$ENV VERSION=$VERSION SOURCE=$SOURCE"
     if [[ -z "$PROFILE" ]] || [[ -z "$ENV" ]] ; then
         echo "Missing required parameter. PROFILE or ENVIRONMENT is missing"
         exit 3
@@ -59,6 +60,7 @@ function deploy_generic_stack() {
       --var-file="variables.default.yaml" \
       --var-file="variables.$ENV.yaml" \
       --var="Version=$VERSION" \
+      --var="Source=$SOURCE" \
       launch --yes "$TEMPLATE_PATH"
 
     cd ${EXEC_PWD}
@@ -91,7 +93,7 @@ function build_lambda() {
 
   docker_login "$PROFILE" "$REGION"
 
-  REGISTRY=$(AWS_PROFILE=$PROFILE aws cloudformation describe-stacks --region $REGION --stack-name "$ENV-ecr" --query 'Stacks[0].Outputs[?OutputKey==`IngestionWorkflowRegistry`].OutputValue' --output text)
+  REGISTRY=$(AWS_PROFILE=$PROFILE aws cloudformation describe-stacks --region $REGION --stack-name "$ENV-dataplatform-ecr" --query 'Stacks[0].Outputs[?OutputKey==`IngestionWorkflowRegistry`].OutputValue' --output text)
   docker build . -t "$REGISTRY:$VERSION"
   docker tag "$REGISTRY:$VERSION" "$REGISTRY:latest"
 

@@ -1,0 +1,157 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+  BucketPrefix:
+    Type: String
+  Source:
+    Type: String
+    Description: The source name will appear in the bucket name
+  BucketPrefixBusinessData:
+    Type: String
+    Default: ''
+
+
+  LambdaLaunchIngestionWorkflowArn:
+    Type: String
+    Description: ARN of the Lambda that trigger ingestion workflow
+  BucketNotificationUpdaterLambda:
+    Type: String
+    Description: ARN of the Bucket Notification Updater Lambda
+
+Outputs:
+
+  BucketName:
+    Value: !Ref Bucket
+  BucketArn:
+    Value: !GetAtt Bucket.Arn
+
+  BucketBusinessDataName:
+    Value: !Ref BucketBusinessData
+  BucketBusinessDataArn:
+    Value: !GetAtt BucketBusinessData.Arn
+
+  KMSKeyArn:
+    Value: !GetAtt KMSKey.Arn
+
+
+Conditions:
+  isBusinessData: !Not [ !Equals [!Ref BucketPrefixBusinessData, ""] ]
+  isTrigger: !Not [ !Equals [!Ref LambdaLaunchIngestionWorkflowArn, ""] ]
+
+Resources:
+  Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${BucketPrefix}-${Source}-${Environment}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !GetAtt KMSKey.Arn
+              SSEAlgorithm: aws:kms
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny non SSL connection
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Resource:
+              - !Sub "arn:aws:s3:::${Bucket}"
+              - !Sub "arn:aws:s3:::${Bucket}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  ############## TRIGGER ##############
+  NewIncomingFilesNotification:
+    Type: Custom::S3BucketConfiguration
+    Properties:
+      ServiceToken: !Ref BucketNotificationUpdaterLambda
+      Bucket: !Ref Bucket
+      NotificationConfiguration:
+        LambdaFunctionConfigurations:
+          - Events: [ 's3:ObjectCreated:*' ]
+            Id: !Sub "${Environment}-${Source}-new-incoming-files"
+            LambdaFunctionArn: !Ref LambdaLaunchIngestionWorkflowArn
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: prefix
+                    Value: !Sub "incoming/"
+
+  #########################
+  #####  Business Data
+  #########################
+  BucketBusinessData:
+    Condition: isBusinessData
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${BucketPrefixBusinessData}-${Environment}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !GetAtt KMSKey.Arn
+              SSEAlgorithm: aws:kms
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  BucketBusinessDataPolicy:
+    Condition: isBusinessData
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref BucketBusinessData
+      PolicyDocument:
+        Statement:
+          - Sid: Deny non SSL connection
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Resource:
+              - !Sub "arn:aws:s3:::${BucketBusinessData}"
+              - !Sub "arn:aws:s3:::${BucketBusinessData}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  #########################
+  #####  KMS
+  #########################
+  KeyAlias:
+    Type: "AWS::KMS::Alias"
+    Properties:
+      AliasName: !Sub "alias/${Environment}-formation"
+      TargetKeyId: !Ref KMSKey
+
+  KMSKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: s3
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment

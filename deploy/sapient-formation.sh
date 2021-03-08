@@ -27,11 +27,12 @@ usage() {
     echo "DEPLOY"
     echo "  - deploy-lakeformation <ENVIRONMENT>: deploy lakeformation stack"
     echo "  - deploy-vpc <ENVIRONMENT>: deploy vpc stack"
-    echo "  - deploy-ecr: deploy ecr"
 
     echo ""
     echo "TP 1"
-    echo "  - tp1-deploy-s3 <ENVIRONMENT>: deploy the s3 stack for a source"
+    echo "  - tp1-deploy-kms <ENVIRONMENT>: deploy KMS key stack"
+    echo "  - tp1-deploy-s3 <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source"
+    echo "  - tp1-deploy-ecr: deploy ecr"
 
     echo ""
     echo "TP 3"
@@ -67,17 +68,27 @@ deploy-vpc() {
     deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "infra/vpc.yaml"
 }
 
-deploy-ecr() {
-    ENVIRONMENT="dev"
-    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "infra/ecr.yaml"
-}
 
 ########################################################################################################################
 #   TP 1
 ########################################################################################################################
+tp1-deploy-kms() {
+    ENVIRONMENT=$1
+    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/kms.yaml"
+}
 tp1-deploy-s3() {
     ENVIRONMENT=$1
-    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/s3.yaml"
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+
+    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/s3.yaml" "" "$SOURCE"
+}
+tp1-deploy-ecr() {
+    ENVIRONMENT="dev"
+    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/ecr.yaml"
 }
 
 ########################################################################################################################

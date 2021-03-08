@@ -1,0 +1,2 @@
+stack_name: "{{ var.environment }}-dataplatform-ecr"
+template_path: tp1/ecr.yaml

@@ -10,10 +10,11 @@ Parameters:
     Description: The source name will appear in the bucket name
 
 Outputs:
-
   BucketName:
     Value: !Ref Bucket
 
+  BucketArn:
+    Value: !GetAtt Bucket.Arn
 
 Resources:
   Bucket:

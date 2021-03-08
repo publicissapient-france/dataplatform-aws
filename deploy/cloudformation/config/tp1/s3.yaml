@@ -1,9 +1,6 @@
-stack_name: "{{ var.environment }}-dataplatform-s3"
+stack_name: "{{ var.environment }}-dataplatform-s3-{{ var.Source }}"
 template_path: tp1/s3.yaml
 parameters:
   Environment: {{ var.environment }}
   BucketPrefix: "{{ var.trainee }}-source"
-  Source: "titanic"
-  BucketPrefixBusinessData: "{{ var.trainee }}-business-data"
-  LambdaLaunchIngestionWorkflowArn: !stack_output_external {{ var.environment }}-ingestion-workflow::LambdaLaunchStepFunctionsArn
-  BucketNotificationUpdaterLambda: !stack_output_external {{ var.environment }}-s3-notification-updater::BucketNotificationUpdaterLambda
+  Source: "{{ var.Source }}"
