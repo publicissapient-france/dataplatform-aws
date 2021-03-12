@@ -18,13 +18,11 @@ function install_deps() {
 
 
 # Usage : install_python_requirements
-function install_python_requirements() {
+function install_lambda_python_requirements() {
     EXEC_PWD=$PWD
-    echo "Install python requirement for $BASE_PATH/api/lambdas"
-    cd "$BASE_PATH/api/lambdas"
-    pip install -r test_requirements.txt --use-feature=2020-resolver
-    pip install -r setup_requirements.txt --use-feature=2020-resolver
-    pip install -r requirements.txt --use-feature=2020-resolver
+    echo "Install python requirement for $BASE_PATH/lambdas"
+    cd "$BASE_PATH/lambdas"
+    pip install -r requirements.txt
 
     cd ${EXEC_PWD}
 }
@@ -42,40 +40,64 @@ function assume_role() {
     echo "aws_session_token=$(echo $AWS_TMP_CONNEXION | jq -r '.Credentials.SessionToken')" >> ~/.aws/credentials
 }
 
+# Usage : deploy_generic_stack ENVIRONMENT TEMPLATE_PATH
+function deploy_generic_stack() {
+    ENV=$1
+    TEMPLATE_PATH=$2
+    VERSION=$3
+    SOURCE=$4
 
-# Usage : deploy_cloudformation_lakeformation PROFILE ENVIRONMENT
-function deploy_cloudformation_lakeformation() {
-    PROFILE=$1
-    ENV=$2
-    echo "Deploy cloudformation for lakeformation with parameters PROFILE=$PROFILE ENV=$ENV"
-
-    if [[ -z "$PROFILE" ]] || [[ -z "$ENV" ]] ; then
-        echo "Missing required parameter. PROFILE or ENVIRONMENT is missing"
+    echo "Deploy cloudformation $TEMPLATE_PATH with parameters ENV=$ENV VERSION=$VERSION SOURCE=$SOURCE"
+    if [[ -z "$ENV" ]] ; then
+        echo "Missing required parameter. ENVIRONMENT is missing"
         exit 3
     fi
 
     EXEC_PWD=$PWD
     cd "$BASE_PATH/deploy/cloudformation/"
-    AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/s3.yaml
-    AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/lakeformation.yaml
+    sceptre \
+      --var-file="variables.default.yaml" \
+      --var-file="variables.$ENV.yaml" \
+      --var="Version=$VERSION" \
+      --var="Source=$SOURCE" \
+      launch --yes "$TEMPLATE_PATH"
 
     cd ${EXEC_PWD}
 }
 
-# Usage : deploy_cloudformation_vpc PROFILE ENVIRONMENT
-function deploy_cloudformation_vpc() {
-    PROFILE=$1
-    ENV=$2
-    echo "Deploy cloudformation for vpc with parameters PROFILE=$PROFILE ENV=$ENV"
+# docker_login PROFILE REGION
+function docker_login() {
+  PROFILE=$1
+  REGION=$2
+  REGISTRY=$(AWS_PROFILE=$PROFILE aws cloudformation describe-stacks --region $REGION --stack-name "$ENV-ecr" --query 'Stacks[0].Outputs[?OutputKey==`IngestionWorkflowRegistry`].OutputValue' --output text)
 
-    if [[ -z "$PROFILE" ]] || [[ -z "$ENV" ]] ; then
-        echo "Missing required parameter. PROFILE or ENVIRONMENT is missing"
-        exit 3
-    fi
+  aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin "$REGISTRY"
+}
 
-    EXEC_PWD=$PWD
-    cd "$BASE_PATH/deploy/cloudformation/"
-    AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes infra/vpc.yaml
+# build_lambda PROFILE REGION ENV VERSION
+function build_lambda() {
+  PROFILE=$1
+  REGION=$2
+  ENV=$3
+  VERSION=$4
 
-    cd ${EXEC_PWD}
+  echo "Build lambda docker with parameters PROFILE=$PROFILE REGION=$REGION ENV=$ENV VERSION=$VERSION"
+  if [[ -z "$PROFILE" ]] || [[ -z "$REGION" ]] || [[ -z "$ENV" ]] || [[ -z "$VERSION" ]] ; then
+      echo "Missing required parameter. PROFILE or ENVIRONMENT or REGION or REGION is missing"
+      exit 3
+  fi
+
+  EXEC_PWD=$PWD
+  cd "$BASE_PATH/lambdas/"
+
+  docker_login "$PROFILE" "$REGION"
+
+  REGISTRY=$(AWS_PROFILE=$PROFILE aws cloudformation describe-stacks --region $REGION --stack-name "$ENV-dataplatform-ecr" --query 'Stacks[0].Outputs[?OutputKey==`IngestionWorkflowRegistry`].OutputValue' --output text)
+  docker build . -t "$REGISTRY:$VERSION"
+  docker tag "$REGISTRY:$VERSION" "$REGISTRY:latest"
+
+  docker push "$REGISTRY:$VERSION"
+  docker push "$REGISTRY:latest"
+
+  cd ${EXEC_PWD}
 }

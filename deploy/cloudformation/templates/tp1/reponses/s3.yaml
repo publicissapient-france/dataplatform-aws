@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+  BucketPrefix:
+    Type: String
+  Source:
+    Type: String
+    Description: The source name will appear in the bucket name
+
+Outputs:
+  BucketName:
+    Value: !Ref Bucket
+
+  BucketArn:
+    Value: !GetAtt Bucket.Arn
+
+Resources:
+  Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${BucketPrefix}-${Source}-${Environment}"

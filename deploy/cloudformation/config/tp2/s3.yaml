@@ -1,0 +1,6 @@
+stack_name: "{{ var.environment }}-dataplatform-s3-{{ var.Source }}"
+template_path: tp2/s3.yaml
+parameters:
+  Environment: {{ var.environment }}
+  BucketPrefix: "{{ var.trainee }}-source"
+  Source: "{{ var.Source }}"

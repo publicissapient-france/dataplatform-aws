@@ -1,7 +1,0 @@
-stack_name: "{{ var.environment }}-dataplatform-s3"
-template_path: s3.yaml
-parameters:
-  Environment: {{ var.environment }}
-  BucketPrefix: "{{ var.trainee }}-source"
-  Source: "titanic"
-  BucketPrefixBusinessData: "{{ var.trainee }}-business-data"

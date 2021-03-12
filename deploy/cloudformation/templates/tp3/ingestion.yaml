@@ -1,0 +1,367 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+  Module:
+    Type: String
+    Default: "ingestion-workflow"
+  BucketPrefix:
+    Type: String
+  KMSKeyArn:
+    Type: String
+  EventbusName:
+    Type: String
+  IngestionWorkflowRegistry:
+    Type: String
+    Description: "ECR registry for lambdas 767178862217.dkr.ecr.eu-west-1.amazonaws.com/ingestion-workflow"
+  Version:
+    Type: String
+
+Outputs:
+  LambdaLaunchStepFunctionsArn:
+    Value: !GetAtt LambdaLaunchStepFunctions.Arn
+
+Resources:
+########################################################################################################################
+# LAUNCH STEP FUNCTIONS
+########################################################################################################################
+  LambdaLaunchStepFunctions:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Sub "${Environment}-${Module}-launch-step-functions"
+      Code:
+        ImageUri: !Sub "${IngestionWorkflowRegistry}:${Version}"
+      Description: !Sub "Lambda that copy/paste file into right S3 prefixes"
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          VERSION: !Ref Version
+          LOG_TYPE: JSON
+          STEP_FUNCTIONS_ARN: !Ref IngestionWorkflow
+      ImageConfig:
+        Command:
+          - launch_step_functions.lambda_handler
+      MemorySize: 128
+      Timeout: 30
+      Role: !GetAtt LambdaLaunchStepFunctionRole.Arn
+      PackageType: Image
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Module
+          Value: !Ref Module
+
+  LambdaLaunchStepFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}-${Module}-launch-step-functions-lambda"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: AllowStepFunctions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowStart
+                Effect: Allow
+                Action:
+                  - "states:StartExecution"
+                Resource: !Ref IngestionWorkflow
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Module
+          Value: !Ref Module
+
+  InvokePreparedDataCrawlerPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref LambdaLaunchStepFunctions
+      Principal: s3.amazonaws.com
+
+########################################################################################################################
+#  STEP FUNCTIONS COMPONENTS
+########################################################################################################################
+  LambdaPartitionRawData:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Sub "${Environment}-${Module}-partition-raw-data"
+      Code:
+        ImageUri: !Sub "${IngestionWorkflowRegistry}:${Version}"
+      Description: !Sub "Lambda that copy/paste file into right S3 prefixes"
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          VERSION: !Ref Version
+          LOG_TYPE: JSON
+      ImageConfig:
+        Command:
+          - partition_data.lambda_handler
+      MemorySize: 128
+      Timeout: 30
+      Role: !GetAtt LambdaExploitationRole.Arn
+      PackageType: Image
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Module
+          Value: !Ref Module
+
+  LambdaExploitationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}-${Module}-lambda"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: S3
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowS3
+                Effect: Allow
+                Action:
+                  - "s3:HeadObject"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:PutObjectAcl"
+                  - "s3:ListBucket"
+                Resource:
+                  - !Sub "arn:aws:s3:::${BucketPrefix}*"
+        - PolicyName: KMS
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowKMS
+                Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:GenerateDataKey*"
+                Resource: !Ref KMSKeyArn
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Module
+          Value: !Ref Module
+
+  IngestionWorkflow:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      StateMachineName: !Sub "${Environment}-ingestion-workflow"
+      DefinitionString: |
+          {
+            "Comment": "Step Functions which processes data",
+            "StartAt": "Partition",
+            "States": {
+              "Partition": {
+                  "Type": "Task",
+                  "Resource": "${LambdaPartitionRawDataArn}",
+                  "Next": "Processus End"
+              },
+              "Processus End": {
+                  "Type": "Pass",
+                  "End": true
+              }
+            }
+          }
+      DefinitionSubstitutions:
+        LambdaPartitionRawDataArn: !GetAtt LambdaPartitionRawData.Arn
+      RoleArn: !GetAtt StepFunctionsRole.Arn
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Module
+          Value: !Ref Module
+
+  StepFunctionsRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}-${Module}-step-functions"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - !Sub states.${AWS::Region}.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: LambdaExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowLambdaExecution
+                Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: "*"
+        - PolicyName: Glue
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowGlueJobExecution
+                Effect: Allow
+                Action:
+                  - "glue:StartJobRun"
+                  - "glue:GetJobRun"
+                  - "glue:GetJobRuns"
+                  - "glue:BatchStopJobRun"
+                Resource: "*"
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Module
+          Value: !Ref Module
+
+
+########################################################################################################################
+#  NOTIFICATIONS
+########################################################################################################################
+  StepFunctionsIngestionStatusChangeFailed:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: !Sub "Rule to trigger lambda when 'ingestion' step functions changed"
+      EventPattern: !Sub |
+        {
+          "detail-type": [
+            "Step Functions Execution Status Change"
+          ],
+          "source": [
+            "aws.states"
+          ],
+          "detail": {
+            "status": ["FAILED", "ABORTED", "TIMED_OUT", "SUCCEEDED"],
+            "stateMachineArn": ["${IngestionWorkflow}"]
+          }
+        }
+      Name: !Sub "${Environment}-${Module}-ingestion-failed"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt LambdaNotifyEnd.Arn
+          Id: !Sub "${Environment}-${Module}-notify-error"
+
+  StepFunctionsPreparationStatusChangeFailed:
+    Type: "AWS::Events::Rule"
+    Properties:
+      Description: !Sub "Rule to trigger lambda when 'preparation' step functions changed"
+      EventPattern: !Sub |
+        {
+          "detail-type": [
+            "Step Functions Execution Status Change"
+          ],
+          "source": [
+            "aws.states"
+          ],
+          "detail": {
+            "status": ["FAILED", "ABORTED", "TIMED_OUT", "SUCCEEDED"],
+            "stateMachineArn": ["${IngestionWorkflow}"]
+          }
+        }
+      Name: !Sub "${Environment}-${Module}-preparation-failed"
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt LambdaNotifyEnd.Arn
+          Id: !Sub "${Environment}-${Module}-notify-error"
+
+  StepFunctionsIngestionStatusChangeFailedPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref LambdaNotifyEnd
+      Principal: events.amazonaws.com
+
+  LambdaNotifyEnd:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      FunctionName: !Sub "${Environment}-${Module}-notify-end"
+      Code:
+        ImageUri: !Sub "${IngestionWorkflowRegistry}:${Version}"
+      Description: !Sub "Lambda that send event in EventBridge to notify the end (success or error)"
+      Environment:
+        Variables:
+          ENVIRONMENT: !Ref Environment
+          VERSION: !Ref Version
+          LOG_TYPE: JSON
+          EVENTBUS_NAME: !Ref EventbusName
+      ImageConfig:
+        Command:
+          - notification/notify_end_process.lambda_handler
+      MemorySize: 128
+      Timeout: 30
+      Role: !GetAtt LambdaLambdaNotifyEndRole.Arn
+      PackageType: Image
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Module
+          Value: !Ref Module
+
+  LambdaLambdaNotifyEndRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}-${Module}-notify-end"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: StepFunctions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "states:ListExecutions"
+                  - "states:DescribeExecution"
+                  - "states:GetExecutionHistory"
+                Resource:
+                  - !Ref IngestionWorkflow
+                  - !Sub
+                    - "arn:aws:states:${AWS::Region}:${AWS::AccountId}:execution:${StepFunctionName}*"
+                    - StepFunctionName: !GetAtt IngestionWorkflow.Name
+        - PolicyName: EventBridge
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "events:PutEvents"
+                Resource: "*"
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Module
+          Value: !Ref Module

@@ -12,6 +12,14 @@ Parameters:
     Type: String
     Default: ''
 
+
+  LambdaLaunchIngestionWorkflowArn:
+    Type: String
+    Description: ARN of the Lambda that trigger ingestion workflow
+  BucketNotificationUpdaterLambda:
+    Type: String
+    Description: ARN of the Bucket Notification Updater Lambda
+
 Outputs:
 
   BucketName:
@@ -27,8 +35,10 @@ Outputs:
   KMSKeyArn:
     Value: !GetAtt KMSKey.Arn
 
+
 Conditions:
   isBusinessData: !Not [ !Equals [!Ref BucketPrefixBusinessData, ""] ]
+  isTrigger: !Not [ !Equals [!Ref LambdaLaunchIngestionWorkflowArn, ""] ]
 
 Resources:
   Bucket:
@@ -63,6 +73,23 @@ Resources:
             Condition:
               Bool:
                 aws:SecureTransport: "false"
+
+  ############## TRIGGER ##############
+  NewIncomingFilesNotification:
+    Type: Custom::S3BucketConfiguration
+    Properties:
+      ServiceToken: !Ref BucketNotificationUpdaterLambda
+      Bucket: !Ref Bucket
+      NotificationConfiguration:
+        LambdaFunctionConfigurations:
+          - Events: [ 's3:ObjectCreated:*' ]
+            Id: !Sub "${Environment}-${Source}-new-incoming-files"
+            LambdaFunctionArn: !Ref LambdaLaunchIngestionWorkflowArn
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: prefix
+                    Value: !Sub "incoming/"
 
   #########################
   #####  Business Data

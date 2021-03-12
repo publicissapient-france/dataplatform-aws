@@ -1,0 +1,4 @@
+stack_name: "{{ var.environment }}-s3-notification-updater"
+template_path: "tp3/s3-notification-updater.yaml"
+parameters:
+  Environment: "{{ var.environment }}"
