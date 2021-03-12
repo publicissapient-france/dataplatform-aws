@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+  BucketPrefix:
+    Type: String
+  Source:
+    Type: String
+    Description: The source name will appear in the bucket name
+  KMSKeyArn:
+    Type: String
+    Description: ARN of the KMS key to encrypt the S3 bucket
+
+Outputs:
+
+  BucketName:
+    Value: !Ref Bucket
+  BucketArn:
+    Value: !GetAtt Bucket.Arn
+
+Resources:
+  Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${BucketPrefix}-${Source}-${Environment}"
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref KMSKeyArn
+              SSEAlgorithm: aws:kms
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: StandardIARule
+            Status: Enabled
+            Prefix: raw-data
+            Transitions:
+              # The min value in days supported for transition to standard_ia storage is 30
+              - TransitionInDays: '45'
+                StorageClass: STANDARD_IA
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny non SSL connection
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Resource:
+              - !Sub "arn:aws:s3:::${Bucket}"
+              - !Sub "arn:aws:s3:::${Bucket}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"

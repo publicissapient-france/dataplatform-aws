@@ -4,6 +4,10 @@ Parameters:
   Environment:
     Type: String
 
+Outputs:
+  KMSKeyArn:
+    Value: !GetAtt KMSKey.Arn
+
 Resources:
   KeyAlias:
     Type: "AWS::KMS::Alias"

@@ -35,6 +35,10 @@ usage() {
     echo "  - tp1-deploy-ecr: deploy ecr"
 
     echo ""
+    echo "TP 2"
+    echo "  - tp2-deploy-s3 <ENVIRONMENT>: deploy the s3 stack for a source"
+
+    echo ""
     echo "TP 3"
     echo "  - tp3-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
     echo "  - tp3-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
@@ -65,7 +69,7 @@ deploy-lakeformation() {
 
 deploy-vpc() {
     ENVIRONMENT=$1
-    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "infra/vpc.yaml"
+    deploy_generic_stack "$ENVIRONMENT" "infra/vpc.yaml"
 }
 
 
@@ -74,7 +78,7 @@ deploy-vpc() {
 ########################################################################################################################
 tp1-deploy-kms() {
     ENVIRONMENT=$1
-    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/kms.yaml"
+    deploy_generic_stack "$ENVIRONMENT" "tp1/kms.yaml"
 }
 tp1-deploy-s3() {
     ENVIRONMENT=$1
@@ -84,11 +88,26 @@ tp1-deploy-s3() {
         exit 3
     fi
 
-    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/s3.yaml" "" "$SOURCE"
+    deploy_generic_stack "$ENVIRONMENT" "tp1/s3.yaml" "" "$SOURCE"
 }
 tp1-deploy-ecr() {
     ENVIRONMENT="dev"
-    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp1/ecr.yaml"
+    deploy_generic_stack "$ENVIRONMENT" "tp1/ecr.yaml"
+}
+
+
+########################################################################################################################
+#   TP 2
+########################################################################################################################
+tp2-deploy-s3() {
+    ENVIRONMENT=$1
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+
+    deploy_generic_stack "$ENVIRONMENT" "tp2/s3.yaml" "" "$SOURCE"
 }
 
 ########################################################################################################################
@@ -96,7 +115,7 @@ tp1-deploy-ecr() {
 ########################################################################################################################
 tp3-deploy-custom-s3-notification-custom-resource() {
     ENVIRONMENT=$1
-    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp3/s3-notification-updater.yaml"
+    deploy_generic_stack "$ENVIRONMENT" "tp3/s3-notification-updater.yaml"
 }
 
 tp3-build-ingestion-workflow() {
@@ -106,7 +125,7 @@ tp3-build-ingestion-workflow() {
 tp3-deploy-ingestion-workflow() {
     ENVIRONMENT=$1
     VERSION=$2
-    deploy_generic_stack "$AWS_PROFILE" "$ENVIRONMENT" "tp3/ingestion.yaml" "$VERSION"
+    deploy_generic_stack "$ENVIRONMENT" "tp3/ingestion.yaml" "$VERSION"
 }
 
 

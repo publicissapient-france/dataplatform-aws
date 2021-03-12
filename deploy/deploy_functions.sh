@@ -40,23 +40,22 @@ function assume_role() {
     echo "aws_session_token=$(echo $AWS_TMP_CONNEXION | jq -r '.Credentials.SessionToken')" >> ~/.aws/credentials
 }
 
-# Usage : deploy_generic_stack PROFILE ENVIRONMENT TEMPLATE_PATH
+# Usage : deploy_generic_stack ENVIRONMENT TEMPLATE_PATH
 function deploy_generic_stack() {
-    PROFILE=$1
-    ENV=$2
-    TEMPLATE_PATH=$3
-    VERSION=$4
-    SOURCE=$5
+    ENV=$1
+    TEMPLATE_PATH=$2
+    VERSION=$3
+    SOURCE=$4
 
-    echo "Deploy cloudformation $TEMPLATE_PATH with parameters PROFILE=$PROFILE ENV=$ENV VERSION=$VERSION SOURCE=$SOURCE"
-    if [[ -z "$PROFILE" ]] || [[ -z "$ENV" ]] ; then
-        echo "Missing required parameter. PROFILE or ENVIRONMENT is missing"
+    echo "Deploy cloudformation $TEMPLATE_PATH with parameters ENV=$ENV VERSION=$VERSION SOURCE=$SOURCE"
+    if [[ -z "$ENV" ]] ; then
+        echo "Missing required parameter. ENVIRONMENT is missing"
         exit 3
     fi
 
     EXEC_PWD=$PWD
     cd "$BASE_PATH/deploy/cloudformation/"
-    AWS_PROFILE=$PROFILE sceptre \
+    sceptre \
       --var-file="variables.default.yaml" \
       --var-file="variables.$ENV.yaml" \
       --var="Version=$VERSION" \
