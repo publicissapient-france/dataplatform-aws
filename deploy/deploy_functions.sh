@@ -57,7 +57,8 @@ function deploy_cloudformation_lakeformation() {
     EXEC_PWD=$PWD
     cd "$BASE_PATH/deploy/cloudformation/"
     AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/s3.yaml
-    AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/lakeformation.yaml
+    AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/ingestion.yaml
+    # AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes lakeformation/lakeformation.yaml
 
     cd ${EXEC_PWD}
 }
@@ -76,6 +77,48 @@ function deploy_cloudformation_vpc() {
     EXEC_PWD=$PWD
     cd "$BASE_PATH/deploy/cloudformation/"
     AWS_PROFILE=$PROFILE sceptre --var-file="variables.default.yaml" --var-file="variables.$ENV.yaml" launch --yes infra/vpc.yaml
+
+    cd ${EXEC_PWD}
+}
+
+# Usage : deploy_glue_job PROFILE ENVIRONMENT
+function deploy_glue_job() {
+    PROFILE=$1
+    ENV=$2
+
+    echo "Deploy glue job with parameters PROFILE=$PROFILE ENV=$ENV"
+
+    if [[ -z "$PROFILE" ]] || [[ -z "$ENV" ]] ; then
+        echo "Missing required parameter. PROFILE or ENVIRONMENT is missing"
+        exit 3
+    fi
+
+    BUCKET_NAME=$(AWS_PROFILE=$PROFILE aws cloudformation describe-stacks --stack-name "$ENV-dataplatform-s3" --output text --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue')
+
+    EXEC_PWD=$PWD
+    cd "$BASE_PATH/csvtoparquet/src/main/scala/fr/publicissapient/training/csvtoparquet/"
+    AWS_PROFILE=$PROFILE aws s3 cp CsvToParquet.scala "s3://$BUCKET_NAME/glue/ingestion/CsvToParquet.scala"
+
+    cd ${EXEC_PWD}
+}
+
+# Usage : upload_titanic_data PROFILE ENVIRONMENT
+function upload_titanic_data() {
+    PROFILE=$1
+    ENV=$2
+
+    echo "Upload with parameters PROFILE=$PROFILE ENV=$ENV"
+
+    if [[ -z "$PROFILE" ]] || [[ -z "$ENV" ]] ; then
+        echo "Missing required parameter. PROFILE or ENVIRONMENT is missing"
+        exit 3
+    fi
+
+    BUCKET_NAME=$(AWS_PROFILE=$PROFILE aws cloudformation describe-stacks --stack-name "$ENV-dataplatform-s3" --output text --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue')
+
+    EXEC_PWD=$PWD
+    cd "$BASE_PATH/data/"
+    AWS_PROFILE=$PROFILE aws s3 cp titanic-passengers.csv "s3://$BUCKET_NAME/raw-data/titanic/passengers/titanic-passengers.csv"
 
     cd ${EXEC_PWD}
 }

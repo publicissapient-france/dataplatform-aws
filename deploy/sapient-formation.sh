@@ -25,6 +25,11 @@ usage() {
     echo "DEPLOY"
     echo "  - deploy-lakeformation <ENVIRONMENT>: deploy lakeformation stack"
     echo "  - deploy-vpc <ENVIRONMENT>: deploy vpc stack"
+    echo "  - deploy-glue-job <ENVIRONMENT>: deploy glue job resources"
+
+    echo ""
+    echo "DATA"
+    echo "  - upload-titanic-data <ENVIRONMENT>: deploy glue job resources"
 
 
 }
@@ -52,6 +57,16 @@ deploy-lakeformation() {
 deploy-vpc() {
     ENVIRONMENT=$1
     deploy_cloudformation_vpc "$AWS_PROFILE" "$ENVIRONMENT"
+}
+
+deploy-glue-job() {
+    ENVIRONMENT=$1
+    deploy_glue_job "$AWS_PROFILE" "$ENVIRONMENT"
+}
+
+upload-titanic-data() {
+    ENVIRONMENT=$1
+    upload_titanic_data "$AWS_PROFILE" "$ENVIRONMENT"
 }
 
 

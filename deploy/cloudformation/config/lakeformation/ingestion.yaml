@@ -1,0 +1,7 @@
+stack_name: "{{ var.environment }}-dataplatform-ingestion"
+template_path: ingestion.yaml
+parameters:
+  Environment: {{ var.environment }}
+  BucketName: !stack_output_external {{ var.environment }}-dataplatform-s3::BucketName
+  BucketArn: !stack_output_external {{ var.environment }}-dataplatform-s3::BucketArn
+  Source: "titanic"

@@ -1,0 +1,3 @@
+---
+environment: aph
+bucket_name: jpinsolle-test1-{{ var.environment }}
