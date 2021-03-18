@@ -68,6 +68,11 @@ function deploy_glue_job() {
     cd "$BASE_PATH/csvtoparquet/src/main/scala/fr/publicissapient/training/csvtoparquet/"
     aws s3 cp CsvToParquet.scala "s3://$BUCKET_NAME/glue/CsvToParquet.scala"
 
+    cd "$BASE_PATH/csvtoparquet/"
+    mvn clean package
+
+    aws s3 cp target/csv-to-parquet-1.0-SNAPSHOT-jar-with-dependencies.jar "s3://$BUCKET_NAME/glue/csv-to-parquet-1.0-SNAPSHOT-jar-with-dependencies.jar"
+
     cd ${EXEC_PWD}
 }
 
