@@ -1,25 +1,30 @@
 import re
 from pathlib import Path
 from models.IngestionEvent import IngestionEvent
+from typing import Tuple
 import boto3
+import json
 
 from utils.logging import get_logger
 
 logger = get_logger()
 
 
-def move_object(s3_resource, bucket: str, source_key: str, destination_key: str):
-    logger.info(f"Move file s3://{bucket}/{source_key} to s3://{bucket}/{destination_key}",
-                extra={"source": source_key, "destination": destination_key})
+def move_object_in_raw_data(s3_resource, bucket: str, object_key: str) -> Tuple[str, str, str]:
 
-    destination = s3_resource.Object(bucket_name=bucket, key=destination_key)
-    destination.copy({
-        'Bucket': bucket,
-        'Key': source_key
-    })
+    raw_data_prefix, raw_data_name, table_name = compute_raw_data_destination(object_key)
+    raw_data_key = raw_data_prefix + raw_data_name
+
+    logger.info(f"Move file s3://{bucket}/{object_key} to s3://{bucket}/{raw_data_key}",
+                extra={"source": object_key, "destination": raw_data_key})
+
+    destination = s3_resource.Object(bucket_name=bucket, key=raw_data_key)
+    destination.copy({ 'Bucket': bucket, 'Key': object_key })
+
+    return raw_data_prefix, raw_data_name, table_name
 
 
-def compute_destination(object_key: str) -> str:
+def compute_raw_data_destination(object_key: str) -> Tuple[str, str, str]:
     m = extract_file_information(object_key)
     if m is None:
         raise Exception(f"File pattern doesn't match for file {object_key}")
@@ -27,7 +32,7 @@ def compute_destination(object_key: str) -> str:
     logger.info(m.group("extraction_date"))
 
     table_name = Path(m.group("filename")).stem
-    return f"raw-data/{table_name}/year={m.group('year')}/month={m.group('month')}/day={m.group('day')}/{m.group('filename')}"
+    return f"raw-data/{table_name}/year={m.group('year')}/month={m.group('month')}/day={m.group('day')}/", m.group('filename'), table_name
 
 
 def extract_file_information(source_object_key):
@@ -41,18 +46,21 @@ def lambda_handler(event, context):
     logger.debug(f"Context={context}")
 
     try:
-        process(IngestionEvent.from_json(event))
+        return process(IngestionEvent.from_json(json.dumps(event)))
     except Exception as e:
         logger.exception('An error occurred')
         raise e
 
 
-def process(event: IngestionEvent):
+def process(event: IngestionEvent) -> dict:
     s3_resource = boto3.resource('s3')
 
-    destination_key = compute_destination(event.object_key)
-    move_object(s3_resource,
-                bucket=event.s3_bucket,
-                source_key=event.object_key,
-                destination_key=destination_key
-                )
+    raw_data_prefix, raw_data_name, table_name = move_object_in_raw_data(s3_resource, bucket=event.s3_bucket, object_key=event.object_key)
+
+    prepared_data_prefix = raw_data_prefix.replace("raw-data", "prepared-data")
+    return event.copy(
+        raw_data_file=raw_data_prefix + raw_data_name,
+        prepared_data_prefix=prepared_data_prefix,
+        database_name=f"{event.environment}-{event.datasource_name}",
+        table_name=table_name
+    ).to_dict()

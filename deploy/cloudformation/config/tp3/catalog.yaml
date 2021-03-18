@@ -1,0 +1,5 @@
+stack_name: "{{ var.environment }}-dataplatform-catalog-{{ var.Source }}"
+template_path: tp3/catalog.yaml
+parameters:
+  Environment: {{ var.environment }}
+  Source: "{{ var.Source }}"

@@ -1,0 +1,21 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Ingestion pipeline data-platform'
+
+Parameters:
+  Environment:
+    Type: String
+    Description: Environment
+
+  Source:
+    Type: String
+
+Resources:
+
+  PreparedDataDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: !Sub "${Environment}-${Source}"
+        Description: !Sub "Data processed and prepared from ${Source} Source"

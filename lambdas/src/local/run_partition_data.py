@@ -8,4 +8,4 @@ event: IngestionEvent = IngestionEvent(
     object_key="incoming/2021-03-06__passengers.csv"
 )
 
-partition_data.process(event)
+print(partition_data.process(event))

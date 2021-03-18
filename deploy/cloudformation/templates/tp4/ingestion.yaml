@@ -24,9 +24,10 @@ Outputs:
     Value: !GetAtt LambdaLaunchStepFunctions.Arn
 
 Resources:
-########################################################################################################################
-# LAUNCH STEP FUNCTIONS
-########################################################################################################################
+
+  ########################################################################################################################
+  # LAUNCH STEP FUNCTIONS
+  ########################################################################################################################
   LambdaLaunchStepFunctions:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -92,9 +93,9 @@ Resources:
       FunctionName: !Ref LambdaLaunchStepFunctions
       Principal: s3.amazonaws.com
 
-########################################################################################################################
-#  STEP FUNCTIONS COMPONENTS
-########################################################################################################################
+  ########################################################################################################################
+  #  STEP FUNCTIONS COMPONENTS
+  ########################################################################################################################
   LambdaPartitionRawData:
     Type: "AWS::Lambda::Function"
     Properties:
@@ -173,23 +174,39 @@ Resources:
     Properties:
       StateMachineName: !Sub "${Environment}-ingestion-workflow"
       DefinitionString: |
-          {
-            "Comment": "Step Functions which processes data",
-            "StartAt": "Partition",
-            "States": {
-              "Partition": {
-                  "Type": "Task",
-                  "Resource": "${LambdaPartitionRawDataArn}",
-                  "Next": "Processus End"
-              },
-              "Processus End": {
-                  "Type": "Pass",
-                  "End": true
+        {
+          "Comment": "Step Functions which processes data",
+          "StartAt": "Partition",
+          "States": {
+            "Partition": {
+                "Type": "Task",
+                "Resource": "${LambdaPartitionRawDataArn}",
+                "Next": "Glue Job"
+            },
+          "Glue Job": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::glue:startJobRun.sync",
+            "Parameters": {
+              "JobName": "${Environment}-csv-to-parquet",
+              "Arguments": {
+                "--input_path.$": "$.raw_data_file",
+                "--output_path.$": "$.prepared_data_prefix",
+                "--database_name.$": "$.database_name",
+                "--table_name.$": "$.table_name",
+                "--correlation_id.$": "$.correlation_id"
               }
+            },
+            "Next": "Processus End"
+            },
+            "Processus End": {
+                "Type": "Pass",
+                "End": true
             }
           }
+        }
       DefinitionSubstitutions:
         LambdaPartitionRawDataArn: !GetAtt LambdaPartitionRawData.Arn
+        Environment: !Ref Environment
       RoleArn: !GetAtt StepFunctionsRole.Arn
       Tags:
         - Key: Environment
@@ -239,9 +256,9 @@ Resources:
           Value: !Ref Module
 
 
-########################################################################################################################
-#  NOTIFICATIONS
-########################################################################################################################
+  ########################################################################################################################
+  #  NOTIFICATIONS
+  ########################################################################################################################
   StepFunctionsIngestionStatusChangeFailed:
     Type: "AWS::Events::Rule"
     Properties:

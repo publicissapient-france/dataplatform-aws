@@ -36,13 +36,19 @@ usage() {
 
     echo ""
     echo "TP 2"
-    echo "  - tp2-deploy-s3 <ENVIRONMENT>: deploy the s3 stack for a source"
+    echo "  - tp2-deploy-s3 <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source"
 
     echo ""
     echo "TP 3"
-    echo "  - tp3-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
-    echo "  - tp3-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
-    echo "  - tp3-deploy-ingestion-workflow <ENVIRONMENT>: deploy the ingestion workflow"
+    echo "  - tp3-deploy-artifacts <ENVIRONMENT>: deploy s3 bucket to store artifacts"
+    echo "  - tp3-deploy-catalog <ENVIRONMENT> <SOURCE>: deploy glue database for the given source"
+    echo "  - tp3-deploy-glue <ENVIRONMENT>: deploy glue job on s3 and deploy the cloudformation stack"
+
+    echo ""
+    echo "TP 4"
+    echo "  - tp4-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
+    echo "  - tp4-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
+    echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
 
 
 }
@@ -113,19 +119,53 @@ tp2-deploy-s3() {
 ########################################################################################################################
 #   TP 3
 ########################################################################################################################
-tp3-deploy-custom-s3-notification-custom-resource() {
+tp3-deploy-artifacts() {
     ENVIRONMENT=$1
-    deploy_generic_stack "$ENVIRONMENT" "tp3/s3-notification-updater.yaml"
+
+    deploy_generic_stack "$ENVIRONMENT" "tp3/artifacts.yaml"
 }
 
-tp3-build-ingestion-workflow() {
-    build_lambda "$AWS_PROFILE" "$AWS_REGION" "$ENVIRONMENT" "$PACKAGE_VERSION"
+tp3-deploy-catalog() {
+    ENVIRONMENT=$1
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+
+    deploy_generic_stack "$ENVIRONMENT" "tp3/catalog.yaml" "" "$SOURCE"
 }
 
-tp3-deploy-ingestion-workflow() {
+tp3-deploy-glue() {
+    ENVIRONMENT=$1
+    deploy_glue_job "$ENVIRONMENT"
+    deploy_generic_stack "$ENVIRONMENT" "tp3/glue.yaml"
+}
+
+########################################################################################################################
+#   TP 4
+########################################################################################################################
+tp4-deploy-custom-s3-notification-custom-resource() {
+    ENVIRONMENT=$1
+    deploy_generic_stack "$ENVIRONMENT" "tp4/s3-notification-updater.yaml"
+}
+
+tp4-build-ingestion-workflow() {
+    ENVIRONMENT=$1
+    build_lambda "$AWS_REGION" "$ENVIRONMENT" "$PACKAGE_VERSION"
+    display_version "$VERSION"
+}
+
+tp4-deploy-ingestion-workflow() {
     ENVIRONMENT=$1
     VERSION=$2
-    deploy_generic_stack "$ENVIRONMENT" "tp3/ingestion.yaml" "$VERSION"
+    deploy_generic_stack "$ENVIRONMENT" "tp4/ingestion.yaml" "$VERSION"
+    display_version "$VERSION"
+}
+tp4-build-and-deploy-ingestion-workflow() {
+    ENVIRONMENT=$1
+    tp4-build-ingestion-workflow "$ENVIRONMENT"
+    tp4-deploy-ingestion-workflow "$ENVIRONMENT" "$PACKAGE_VERSION"
 }
 
 

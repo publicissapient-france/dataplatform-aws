@@ -1,0 +1,5 @@
+stack_name: "{{ var.environment }}-dataplatform-artifacts"
+template_path: tp3/artifacts.yaml
+parameters:
+  Environment: {{ var.environment }}
+  BucketName: "{{ var.trainee }}-artifacts"

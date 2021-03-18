@@ -27,19 +27,6 @@ function install_lambda_python_requirements() {
     cd ${EXEC_PWD}
 }
 
-# Usage : assume_role ROLE_TO_ASSUME
-function assume_role() {
-    ROLE=$1
-    echo "Assume IAM role $ROLE"
-
-    AWS_TMP_CONNEXION=$(aws sts assume-role --role-arn $ROLE --role-session-name gitlab-configuration)
-    mkdir -p ~/.aws
-    echo "[datalake]" >> ~/.aws/credentials
-    echo "aws_access_key_id=$(echo $AWS_TMP_CONNEXION | jq -r '.Credentials.AccessKeyId')" >> ~/.aws/credentials
-    echo "aws_secret_access_key=$(echo $AWS_TMP_CONNEXION | jq -r '.Credentials.SecretAccessKey')" >> ~/.aws/credentials
-    echo "aws_session_token=$(echo $AWS_TMP_CONNEXION | jq -r '.Credentials.SessionToken')" >> ~/.aws/credentials
-}
-
 # Usage : deploy_generic_stack ENVIRONMENT TEMPLATE_PATH
 function deploy_generic_stack() {
     ENV=$1
@@ -65,34 +52,51 @@ function deploy_generic_stack() {
     cd ${EXEC_PWD}
 }
 
+# Usage : deploy_glue_job ENVIRONMENT
+function deploy_glue_job() {
+    ENV=$1
+
+    echo "Deploy glue job with parameters ENV=$ENV"
+    if [[ -z "$ENV" ]] ; then
+        echo "Missing required parameter. ENVIRONMENT is missing"
+        exit 3
+    fi
+
+    BUCKET_NAME=$(aws cloudformation describe-stacks --stack-name "$ENV-dataplatform-artifacts" --output text --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue')
+
+    EXEC_PWD=$PWD
+    cd "$BASE_PATH/csvtoparquet/src/main/scala/fr/publicissapient/training/csvtoparquet/"
+    aws s3 cp CsvToParquet.scala "s3://$BUCKET_NAME/glue/CsvToParquet.scala"
+
+    cd ${EXEC_PWD}
+}
+
 # docker_login PROFILE REGION
 function docker_login() {
-  PROFILE=$1
-  REGION=$2
-  REGISTRY=$(AWS_PROFILE=$PROFILE aws cloudformation describe-stacks --region $REGION --stack-name "$ENV-ecr" --query 'Stacks[0].Outputs[?OutputKey==`IngestionWorkflowRegistry`].OutputValue' --output text)
+  REGION=$1
+  REGISTRY=$(aws cloudformation describe-stacks --region $REGION --stack-name "$ENV-dataplatform-ecr" --query 'Stacks[0].Outputs[?OutputKey==`IngestionWorkflowRegistry`].OutputValue' --output text)
 
   aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin "$REGISTRY"
 }
 
-# build_lambda PROFILE REGION ENV VERSION
+# build_lambda REGION ENV VERSION
 function build_lambda() {
-  PROFILE=$1
-  REGION=$2
-  ENV=$3
-  VERSION=$4
+  REGION=$1
+  ENV=$2
+  VERSION=$3
 
-  echo "Build lambda docker with parameters PROFILE=$PROFILE REGION=$REGION ENV=$ENV VERSION=$VERSION"
-  if [[ -z "$PROFILE" ]] || [[ -z "$REGION" ]] || [[ -z "$ENV" ]] || [[ -z "$VERSION" ]] ; then
-      echo "Missing required parameter. PROFILE or ENVIRONMENT or REGION or REGION is missing"
+  echo "Build lambda docker with parameters REGION=$REGION ENV=$ENV VERSION=$VERSION"
+  if [[ -z "$REGION" ]] || [[ -z "$ENV" ]] || [[ -z "$VERSION" ]] ; then
+      echo "Missing required parameter. ENVIRONMENT or REGION or REGION is missing"
       exit 3
   fi
 
   EXEC_PWD=$PWD
   cd "$BASE_PATH/lambdas/"
 
-  docker_login "$PROFILE" "$REGION"
+  docker_login "$REGION"
 
-  REGISTRY=$(AWS_PROFILE=$PROFILE aws cloudformation describe-stacks --region $REGION --stack-name "$ENV-dataplatform-ecr" --query 'Stacks[0].Outputs[?OutputKey==`IngestionWorkflowRegistry`].OutputValue' --output text)
+  REGISTRY=$(aws cloudformation describe-stacks --region $REGION --stack-name "$ENV-dataplatform-ecr" --query 'Stacks[0].Outputs[?OutputKey==`IngestionWorkflowRegistry`].OutputValue' --output text)
   docker build . -t "$REGISTRY:$VERSION"
   docker tag "$REGISTRY:$VERSION" "$REGISTRY:latest"
 
@@ -100,4 +104,13 @@ function build_lambda() {
   docker push "$REGISTRY:latest"
 
   cd ${EXEC_PWD}
+}
+
+
+# Usage: display_version VERSION
+function display_version() {
+  VERSION=$1
+  echo "############################################################################################################"
+  echo "# VERSION $VERSION"
+  echo "############################################################################################################"
 }

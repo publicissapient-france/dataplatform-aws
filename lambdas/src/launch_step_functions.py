@@ -2,6 +2,7 @@ from utils.logging import get_logger
 from models.IngestionEvent import IngestionEvent
 import boto3
 import os
+import uuid
 
 logger = get_logger()
 
@@ -27,7 +28,8 @@ def process(event, sfn_arn: str, environment: str):
         environment=environment,
         datasource_name=datasource_name,
         s3_bucket=bucket,
-        object_key=key
+        object_key=key,
+        correlation_id=str(uuid.uuid4())
     )
 
     execution_name = f"{datasource_name}-{step_functions_input.correlation_id}"
@@ -43,7 +45,7 @@ def start(sfn_client, sfn_arn: str, execution_name: str, sfn_input: IngestionEve
         sfn_response = sfn_client.start_execution(
             stateMachineArn=sfn_arn,
             name=execution_name,
-            input=sfn_input.to_json()
+            input=sfn_input.to_json(),
         )
 
         logger.info(f"Start step functions {sfn_arn}",

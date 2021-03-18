@@ -1,0 +1,6 @@
+stack_name: "{{ var.environment }}-dataplatform-glue"
+template_path: tp3/glue.yaml
+parameters:
+  Environment: {{ var.environment }}
+  ArtifactBucketName: !stack_output_external {{ var.environment }}-dataplatform-artifacts::BucketName
+  BucketPrefix: "{{ var.trainee }}-source"
