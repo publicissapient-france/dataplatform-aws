@@ -31,13 +31,17 @@ def compute_raw_data_destination(object_key: str) -> Tuple[str, str, str]:
     logger.info(m.group("prefix"))
     logger.info(m.group("extraction_date"))
 
+    partition = ""
+    if m.group('year') and m.group('day') and m.group('day'):
+        partition = f"year={m.group('year')}/month={m.group('month')}/day={m.group('day')}/"
+
     table_name = Path(m.group("filename")).stem
-    return f"raw-data/{table_name}/year={m.group('year')}/month={m.group('month')}/day={m.group('day')}/", m.group('filename'), table_name
+    return f"raw-data/{partition}{table_name}/", m.group('filename'), table_name
 
 
 def extract_file_information(source_object_key):
     return re.search(
-        "(?P<prefix>[\\w+/]*)(?P<extraction_date>(?P<year>\\d{4})-(?P<month>\\d{1,2})-(?P<day>\\d{1,2}))__(?P<filename>.+)",
+        "(?P<prefix>[\\w+]*)/(?P<extraction_date>(?P<year>\\d{4})-(?P<month>\\d{1,2})-(?P<day>\\d{1,2}))?(__)?(?P<filename>.+)",
         source_object_key)
 
 

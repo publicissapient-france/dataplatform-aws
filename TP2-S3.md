@@ -18,7 +18,7 @@ Activer le versioning, [voir la documentation](https://docs.aws.amazon.com/AWSCl
 Le fichier à modifier est deploy/templates/tp2/s3.yaml. Une fois le versioning activé, lancer sceptre
  
 ```shell
-./deploy/sapient-formation.sh tp1-deploy-s3 dev titanic
+./deploy/sapient-formation.sh tp1-deploy-s3 dev phone
 ```
 
 ## Étape 2 (Chiffrement)
@@ -64,7 +64,8 @@ Pour vérifier que votre configuration est correcte (chiffrement et versioning),
 
 ```shell
 # L'upload du fichier se fait sans spécifier de chiffrement, la configuration du bucket entre en jeu
-aws s3 cp data/titanic/passengers.csv s3://<trainee>-source-titanic-dev/incoming/2021-03-30__passengers.csv
+aws s3 cp data/phone/customer.csv s3://<trainee>-source-phone-dev/incoming/customers.csv
+aws s3 cp data/phone/customer.csv s3://<trainee>-source-phone-dev/incoming/2021-01-01__calls.csv
 ```
 
 Quand vous naviguez à l'aide de la console AWS sur le fichier, vous devriez voir que ce dernier est chiffré avec votre clé KMS.

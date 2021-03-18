@@ -189,8 +189,8 @@ Resources:
             "Parameters": {
               "JobName": "${Environment}-csv-to-parquet",
               "Arguments": {
-                "--input_path.$": "$.raw_data_file",
-                "--output_path.$": "$.prepared_data_prefix",
+                "--input_path.$": "States.Format('s3://{}/{}', $.s3_bucket, $.raw_data_file)",
+                "--output_path.$": "States.Format('s3://{}/{}', $.s3_bucket, $.prepared_data_prefix)",
                 "--database_name.$": "$.database_name",
                 "--table_name.$": "$.table_name",
                 "--correlation_id.$": "$.correlation_id"

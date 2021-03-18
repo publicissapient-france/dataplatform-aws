@@ -76,6 +76,7 @@ Resources:
   ########################################################################################################################
   NewIncomingFilesNotification:
     Type: Custom::S3BucketConfiguration
+    DependsOn: Bucket
     Properties:
       ServiceToken: !Ref BucketNotificationUpdaterLambda
       Bucket: !Ref Bucket

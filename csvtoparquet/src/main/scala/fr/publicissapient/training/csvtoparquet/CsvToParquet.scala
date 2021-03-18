@@ -29,7 +29,7 @@ object CsvToParquet {
 
     val data = spark.read
       .option("header", "true")
-      .option("delimiter", ";")
+      .option("delimiter", ",")
       .csv(inputPath)
     logger.info(s"Writing data at $outputPath")
 
