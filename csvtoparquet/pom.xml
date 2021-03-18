@@ -22,6 +22,14 @@
             <artifactId>AWSGlueETL</artifactId>
             <version>1.0.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>com.lihaoyi</groupId>
+            <artifactId>upickle_2.11</artifactId>
+            <version>0.7.4</version>
+        </dependency>
+
+
         <!-- <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-core_${scala.dep.version}</artifactId>
@@ -38,6 +46,10 @@
         <repository>
             <id>aws-glue-etl-artifacts</id>
             <url>https://aws-glue-etl-artifacts.s3.amazonaws.com/release/</url>
+        </repository>
+        <repository>
+            <id>mvn-repository</id>
+            <url>http://repo.maven.apache.org/maven2/</url>
         </repository>
     </repositories>
     <build>
