@@ -15,7 +15,7 @@ Parameters:
     Default: 192.168.42.0
   HAMode:
     Description: High Availability mode. false to create only one nat gateway and save money.
-    Default: 'true'
+    Default: 'false'
     Type: String
     AllowedValues:
       - true
@@ -101,7 +101,6 @@ Conditions:
 ###############################################################################
 ### Resources
 ###############################################################################
-
 Resources:
   VPC:
     Type: 'AWS::EC2::VPC'
