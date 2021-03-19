@@ -29,6 +29,7 @@ Resources:
       }
       DefaultArguments: {
         "--job-language": "scala",
+        "--extra-jars": !Sub "s3://${ArtifactBucketName}/glue/csv-to-parquet-1.0-SNAPSHOT-jar-with-dependencies.jar",
         "--class": "fr.publicissapient.training.csvtoparquet.CsvToParquet",
         "--JOB_NAME": "GlueCsvToParquetJob"
       }
