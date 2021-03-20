@@ -4,7 +4,9 @@ import com.amazonaws.services.glue.{DynamicFrame, GlueContext}
 import com.amazonaws.services.glue.util.{GlueArgParser, Job, JsonOptions}
 import org.apache.log4j.Logger
 import org.apache.spark.SparkContext
-import org.apache.spark.sql.{SaveMode, SparkSession}
+import org.apache.spark.sql.{DataFrame, SaveMode, SparkSession}
+import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.types.{DataType, StringType}
 
 import scala.collection.JavaConverters.mapAsJavaMapConverter
 import scala.util.Try
@@ -12,8 +14,6 @@ import scala.util.Try
 object CsvToParquet {
 
   def main(sysArgs: Array[String]) {
-    // val sc: SparkContext = new SparkContext("local[*]", "CsvToParquet")
-
     val sc: SparkContext = new SparkContext()
     val glueContext: GlueContext = new GlueContext(sc)
     val spark: SparkSession = glueContext.getSparkSession
@@ -35,6 +35,17 @@ object CsvToParquet {
       case None => inputPath
     }
 
+    val prefixToOverwrite = maybePartitions match {
+      case Some(partitions) =>
+        val partitionFolders = partitions.map{ case (k, v) => s"$k=${Try(v.str.toInt.toString).getOrElse(v.str)}"}.mkString("/")
+        s"$outputPath/$partitionFolders"
+      case None => outputPath
+    }
+
+    def castPartitionColumnsToString(dataFrame: DataFrame, partitionColumns: Array[String]): DataFrame = {
+      partitionColumns.foldLeft(dataFrame)((df, column) => df.withColumn(column, col(column).cast(StringType)))
+    }
+
     logger.info(s"Reading data at $prefixToRead")
 
     val data = spark.read
@@ -42,6 +53,11 @@ object CsvToParquet {
       .option("basePath", inputPath)
       .option("delimiter", ",")
       .csv(prefixToRead)
+
+    val cleanData = maybePartitions match {
+      case Some(partitions) => castPartitionColumnsToString(data, partitions.keySet.toArray)
+      case None => data
+    }
 
     logger.info(s"Writing data at $outputPath")
 
@@ -54,13 +70,18 @@ object CsvToParquet {
     val options = maybePartitions match {
       case Some(partitions) => baseOptions + ("partitionKeys" -> partitions.keySet)
       case None => baseOptions
-
     }
 
-    val dynamicFrame = DynamicFrame(data, glueContext)
+    logger.info("Create DynamicFrame")
+    val dynamicFrame = DynamicFrame(cleanData, glueContext)
 
     val sink = glueContext.getSink(connectionType = "s3", JsonOptions(options)).withFormat("glueparquet")
+
+    logger.info(s"Sink to catalog: $databaseName.$tableName")
     sink.setCatalogInfo(catalogDatabase = databaseName, catalogTableName = tableName)
+
+    logger.info("Write DynamicFrame")
+    cleanData.limit(0).write.mode("overwrite").parquet(prefixToOverwrite)
     sink.writeDynamicFrame(dynamicFrame)
     Job.commit()
 

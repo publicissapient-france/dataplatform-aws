@@ -193,6 +193,7 @@ Resources:
                 "--output_path.$": "States.Format('s3://{}/{}', $.s3_bucket, $.prepared_data_prefix)",
                 "--database_name.$": "$.database_name",
                 "--table_name.$": "$.table_name",
+                "--partitions.$": "$.partitions",
                 "--correlation_id.$": "$.correlation_id"
               }
             },
