@@ -1,0 +1,103 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Ingestion pipeline data-platform'
+
+Parameters:
+  Environment:
+    Type: String
+    Description: Environment
+
+  ArtifactBucketName:
+    Type: String
+    Description: "Name of artifact bucket"
+
+  KMSKeyArn:
+    Type: String
+
+  BucketPrefix:
+    Type: String
+    Description: "Prefix of data buckets"
+
+Resources:
+
+  GlueCsvToParquetJob:
+    Type: "AWS::Glue::Job"
+    Properties:
+      Role: !Ref AWSGlueJobRole
+      Name: !Sub "${Environment}-csv-to-parquet"
+      GlueVersion: "2.0"
+      Command: {
+        "Name": "glueetl",
+        "ScriptLocation": !Sub "s3://${ArtifactBucketName}/glue/CsvToParquet.scala"
+      }
+      DefaultArguments: {
+        "--job-language": "scala",
+        "--extra-jars": !Sub "s3://${ArtifactBucketName}/glue/csv-to-parquet-1.0-SNAPSHOT-jar-with-dependencies.jar",
+        "--class": "fr.publicissapient.training.csvtoparquet.CsvToParquet",
+        "--JOB_NAME": "GlueCsvToParquetJob"
+      }
+      MaxRetries: 0
+      Description: "Convert CSV data to Parquet Data"
+      WorkerType: "G.1X"
+      NumberOfWorkers: 5
+
+  AWSGlueJobRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - glue.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole
+      Policies:
+        - PolicyName: AllowSourcesBuckets
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowS3
+                Effect: Allow
+                Action:
+                  - "s3:HeadObject"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:DeleteObject"
+                  - "s3:PutObjectAcl"
+                  - "s3:ListBucket"
+                Resource:
+                  - !Sub "arn:aws:s3:::${BucketPrefix}*"
+        - PolicyName: AllowArtifacts
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowS3
+                Effect: Allow
+                Action:
+                  - "s3:HeadObject"
+                  - "s3:GetObject"
+                  - "s3:PutObject"
+                  - "s3:PutObjectAcl"
+                  - "s3:ListBucket"
+                Resource:
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}'
+                  - !Sub 'arn:aws:s3:::${ArtifactBucketName}/*'
+        - PolicyName: AllowKMS
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowKMS
+                Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:ReEncrypt*"
+                  - "kms:GenerateDataKey*"
+                  - "kms:DescribeKey"
+                Resource:
+                  - !Ref KMSKeyArn
+      Path: "/"

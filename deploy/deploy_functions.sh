@@ -72,6 +72,9 @@ function deploy_glue_job() {
     mvn clean package
     aws s3 cp target/csv-to-parquet-1.0-SNAPSHOT-jar-with-dependencies.jar "s3://$BUCKET_NAME/glue/csv-to-parquet-1.0-SNAPSHOT-jar-with-dependencies.jar"
 
+    # Ligne à exécuter en lieu et place des deux précédentes en cas de problème de construction du jar avec Maven
+    # aws s3 cp jar/csv-to-parquet-1.0-SNAPSHOT-jar-with-dependencies.jar "s3://$BUCKET_NAME/glue/csv-to-parquet-1.0-SNAPSHOT-jar-with-dependencies.jar"
+
     cd ${EXEC_PWD}
 }
 

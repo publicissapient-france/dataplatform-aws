@@ -1,0 +1,7 @@
+stack_name: "{{ var.environment }}-dataplatform-glue"
+template_path: tp3/reponses/glue.yaml
+parameters:
+  Environment: {{ var.environment }}
+  ArtifactBucketName: !stack_output_external {{ var.environment }}-dataplatform-artifacts::BucketName
+  KMSKeyArn: !stack_output_external {{ var.environment }}-dataplatform-kms::KMSKeyArn
+  BucketPrefix: "{{ var.trainee }}-source"

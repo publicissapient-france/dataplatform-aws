@@ -6,10 +6,9 @@ Le but de cet exercice est d'enrichir la configuration du bucket S3 du TP1.
 * Interdiction des écriture faites via un protocole non sécurisé
 
 
-Assurer vous d'être dans le dossier `dataplatform-aws` 
+Assurez-vous d'être dans le dossier `dataplatform-aws` 
 ```shell
 cd dataplatform-aws/
-git checkout tp2
 ```
 
 ## Étape 1 (Versioning)
