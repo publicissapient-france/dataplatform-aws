@@ -19,3 +19,8 @@ Resources:
       DatabaseInput:
         Name: !Sub "${Environment}-${Source}"
         Description: !Sub "Data processed and prepared from ${Source} Source"
+
+Outputs:
+
+  PreparedDataDatabase:
+    Value: !Ref PreparedDataDatabase
