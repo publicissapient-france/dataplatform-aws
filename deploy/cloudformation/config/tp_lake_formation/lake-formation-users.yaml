@@ -1,0 +1,7 @@
+stack_name: "{{ var.environment }}-dataplatform-lakeformation-users"
+template_path: tp_lake_formation/lake-formation-users.yaml
+parameters:
+  DataLakeBucket: !stack_output_external {{ var.environment }}-dataplatform-s3-{{ var.Source }}::BucketName
+  AthenaResultBucket: !stack_output_external {{ var.environment }}-dataplatform-s3-{{ var.Source }}::BucketName
+  KMSArn: !stack_output_external {{ var.environment }}-dataplatform-kms::KMSKeyArn
+  UserPassword: "Azerty123!"

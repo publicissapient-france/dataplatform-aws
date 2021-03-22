@@ -1,0 +1,8 @@
+stack_name: "{{ var.environment }}-dataplatform-lakeformation-permissions-{{ var.Source }}"
+template_path: tp_lake_formation/lake-formation-permissions.yaml
+parameters:
+  DataLakeBucket: !stack_output_external {{ var.environment }}-dataplatform-s3-{{ var.Source }}::BucketName
+  LakeformationRoleArn: !stack_output_external {{ var.environment }}-dataplatform-lakeformation-users::LakeFormationWorkflowRoleArn
+  DataAnalystUserArn: !stack_output_external {{ var.environment }}-dataplatform-lakeformation-users::DataAnalystUserArn
+  Database: !stack_output_external {{ var.environment }}-dataplatform-catalog-{{ var.Source }}::PreparedDataDatabase
+  Table: "{{ var.Source }}"

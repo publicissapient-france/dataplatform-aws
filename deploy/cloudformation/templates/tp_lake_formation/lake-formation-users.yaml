@@ -1,0 +1,196 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create AWS Lake Formation workshop resources
+Parameters:
+  DataLakeBucket:
+    Type: String
+    Default: ''
+    Description: Data Bucket
+  AthenaResultBucket:
+    Type: String
+    Default: ''
+    Description: AthenaResultBucket Bucket
+  KMSArn:
+    Type: String
+    Default: ''
+  UserPassword:
+    Type: String
+    Default: Azerty123!
+    Description: Users Password for DataLakeAdmin and DataAnalyst
+
+Outputs:
+
+  DataAnalystUserArn:
+    Value: !GetAtt DataAnalyst.Arn
+  DataAnalystUserPassword:
+    Value: !Ref UserPassword
+
+  DataLakeAdminUserArn:
+    Value: !GetAtt DataLakeAdmin.Arn
+  DataLakeAdminUserPassword:
+    Value: !Ref UserPassword
+
+  LakeFormationWorkflowRoleArn:
+    Value: !GetAtt LakeFormationWorkflowRole.Arn
+
+Resources:
+  LakeFormationWorkflowRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: LakeFormationWorkflowRole
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - glue.amazonaws.com
+                - lakeformation.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AWSGlueServiceRole'
+      Policies:
+        - PolicyName: LakeFormationWorkflow
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Sid: AllowKMS
+                Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:ReEncrypt*"
+                  - "kms:GenerateDataKey*"
+                  - "kms:DescribeKey"
+                Resource:
+                  - !Ref KMSArn
+              - Effect: Allow
+                Action:
+                  - 'lakeformation:GetDataAccess' #lakeformation:GetDataAccess enables jobs created by the workflow to write to the target location
+                  - 'lakeformation:GrantPermissions' #lakeformation:GrantPermissions enables the workflow to grant the SELECT permission on target tables.
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'iam:PassRole' #iam:PassRole enables the service to assume the role LakeFormationWorkflowRole to create crawlers and jobs, and to attach the role to the created crawlers and jobs.
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:iam::'
+                      - !Ref 'AWS::AccountId'
+                      - ':role/LakeFormationWorkflowRole'
+              - Effect: Allow
+                Action:
+                  - 's3:*'
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:s3:::'
+                      - !Sub ${DataLakeBucket}
+                      - /*
+                  - !Join
+                    - ''
+                    - - 'arn:aws:s3:::'
+                      - !Sub ${DataLakeBucket}
+  DataLakeAdmin:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: DataLakeAdmin
+      Path: /
+      LoginProfile:
+        Password: !Ref UserPassword
+        PasswordResetRequired: false
+      Policies:
+        - PolicyName: LakeFormationSLR
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'iam:CreateServiceLinkedRole'
+                Resource: '*'
+                Condition:
+                  StringEquals:
+                    iam:AWSServiceName: lakeformation.amazonaws.com
+              - Effect: Allow
+                Action:
+                  - 'iam:PutRolePolicy'
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:iam::'
+                      - !Ref 'AWS::AccountId'
+                      - ':role/aws-service-role/lakeformation.amazonaws.com/AWSServiceRoleForLakeFormationDataAccess'
+              - Effect: Allow
+                Sid: 'PassRolePermissions'
+                Action:
+                  - 'iam:PassRole'
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:iam::'
+                      - !Ref 'AWS::AccountId'
+                      - ':role/LakeFormationWorkflowRole'
+              - Effect: Allow
+                Sid: 'S3CFpermission'
+                Action:
+                  - 's3:PutObject'
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                  - 's3:DeleteObject'
+                Resource:
+                  - 'arn:aws:s3:::cf-templates*'
+                  - 'arn:aws:s3:::*/*'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AWSLakeFormationDataAdmin' #Mandatory
+        - 'arn:aws:iam::aws:policy/AWSGlueConsoleFullAccess' #Optional
+        - 'arn:aws:iam::aws:policy/CloudWatchLogsReadOnlyAccess' #Optional
+        - 'arn:aws:iam::aws:policy/AWSLakeFormationCrossAccountManager' #Optional
+        - 'arn:aws:iam::aws:policy/AmazonAthenaFullAccess' #Optional
+        - 'arn:aws:iam::aws:policy/AWSCloudFormationFullAccess' #Optional
+
+  DataAnalyst:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: DataAnalyst
+      Path: /
+      LoginProfile:
+        Password: !Ref UserPassword
+        PasswordResetRequired: false
+      Policies:
+        - PolicyName:  DatalakeUserBasic
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'lakeformation:GetDataAccess'
+                  - 'glue:GetTable'
+                  - 'glue:GetTables'
+                  - 'glue:SearchTables'
+                  - 'glue:GetDatabase'
+                  - 'glue:GetDatabases'
+                  - 'glue:GetPartitions'
+                Resource: '*'
+        - PolicyName: S3-Athena-Query-Result-Policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:Put*'
+                  - 's3:Get*'
+                  - 's3:List*'
+                  - 's3:DeleteObject*'
+                Resource:
+                  - !Join
+                    - ''
+                    - - 'arn:aws:s3:::'
+                      - !Sub ${AthenaResultBucket}
+                      - '/*'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonAthenaFullAccess'
+
+  DatalakeAdministrator:
+    Type: AWS::LakeFormation::DataLakeSettings
+    Properties:
+      Admins:
+        - DataLakePrincipalIdentifier: !GetAtt DataLakeAdmin.Arn

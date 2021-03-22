@@ -50,6 +50,11 @@ usage() {
     echo "  - tp4-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
     echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
 
+    echo ""
+    echo "TP LAKE FORMATION"
+    echo "  - tplakeformation-deploy-users <ENVIRONMENT> <SOURCE> : deploy users for lakeformation"
+    echo "  - tplakeformation-deploy-permissions <ENVIRONMENT> <SOURCE>: deploy permissions for calls table"
+
 
 }
 
@@ -166,6 +171,28 @@ tp4-build-and-deploy-ingestion-workflow() {
     ENVIRONMENT=$1
     tp4-build-ingestion-workflow "$ENVIRONMENT"
     tp4-deploy-ingestion-workflow "$ENVIRONMENT" "$PACKAGE_VERSION"
+}
+
+########################################################################################################################
+#   TP LAKE FORMATION
+########################################################################################################################
+tplakeformation-deploy-users() {
+    ENVIRONMENT=$1
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+    deploy_generic_stack "$ENVIRONMENT" "tp_lake_formation/lake-formation-users.yaml" "" "$SOURCE"
+}
+tplakeformation-deploy-permissions() {
+    ENVIRONMENT=$1
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+    deploy_generic_stack "$ENVIRONMENT" "tp_lake_formation/lake-formation-permissions.yaml" "" "$SOURCE"
 }
 
 

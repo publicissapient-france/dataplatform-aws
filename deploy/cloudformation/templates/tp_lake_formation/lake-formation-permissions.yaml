@@ -1,0 +1,47 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template to create AWS Lake Formation workshop permissions
+Parameters:
+  DataLakeBucket:
+    Type: String
+    Default: ''
+
+  LakeformationRoleArn:
+    Type: String
+    Default: 'arn:aws:iam::<accountID>:role/LakeFormationWorkflowRole'
+
+  DataAnalystUserArn:
+    Type: String
+    Default: 'arn:aws:iam::<accountID>:user/DataAnalyst'
+
+  Database:
+    Type: String
+    Default: 'lake-formation-demo'
+
+  Table:
+    Type: String
+    Default: 'calls'
+
+
+
+Resources:
+
+  DatalakeLocationRegistration:
+    Type: AWS::LakeFormation::Resource
+    Properties:
+      ResourceArn: !Sub "arn:aws:s3:::${DataLakeBucket}/*"
+      RoleArn: !Sub "${LakeformationRoleArn}"
+      UseServiceLinkedRole: True
+
+
+  DataAnalystUserPermissions:
+    DependsOn: DatalakeLocationRegistration
+    Type: AWS::LakeFormation::Permissions
+    Properties:
+      DataLakePrincipal:
+        DataLakePrincipalIdentifier: !Ref DataAnalystUserArn
+      Permissions:
+        - SELECT
+      Resource:
+        TableResource:
+          DatabaseName: !Ref Database
+          Name: !Ref Table
