@@ -1,5 +1,5 @@
 stack_name: "{{ var.environment }}-dataplatform-s3-{{ var.Source }}"
-template_path: tp2/s3.yaml
+template_path: tp8/reponses/s3.yaml
 parameters:
   Environment: {{ var.environment }}
   BucketPrefix: "{{ var.trainee }}-source"
@@ -7,3 +7,5 @@ parameters:
   KMSKeyArn: !stack_output_external {{ var.environment }}-dataplatform-kms::KMSKeyArn
   BucketNotificationUpdaterLambda: !stack_output_external {{ var.environment }}-dataplatform-s3-notification-updater::BucketNotificationUpdaterLambda
   LambdaLaunchIngestionWorkflowArn: !stack_output_external {{ var.environment }}-dataplatform-ingestion-workflow::LambdaLaunchStepFunctionsArn
+
+  BucketName: "{{ var.trainee }}-source-{{ var.Source }}-{{ var.environment }}"

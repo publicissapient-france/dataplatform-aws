@@ -1,0 +1,207 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+  BucketPrefix:
+    Type: String
+  BucketName:
+    Type: String
+  Source:
+    Type: String
+    Description: The source name will appear in the bucket name
+  KMSKeyArn:
+    Type: String
+    Description: ARN of the KMS key to encrypt the S3 bucket
+
+  LambdaLaunchIngestionWorkflowArn:
+    Type: String
+    Description: ARN of the Lambda that trigger ingestion workflow
+  BucketNotificationUpdaterLambda:
+    Type: String
+    Description: ARN of the Bucket Notification Updater Lambda
+
+Outputs:
+
+  BucketName:
+    Value: !Ref Bucket
+  BucketArn:
+    Value: !GetAtt Bucket.Arn
+
+  BackupBucketName:
+    Value: !Ref BackupBucket
+  BackupBucketArn:
+    Value: !GetAtt BackupBucket.Arn
+
+Resources:
+  Bucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Ref BucketName
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              KMSMasterKeyID: !Ref KMSKeyArn
+              SSEAlgorithm: aws:kms
+            BucketKeyEnabled: true
+      VersioningConfiguration:
+        Status: Enabled
+      LifecycleConfiguration:
+        Rules:
+          - Id: StandardIARule
+            Status: Enabled
+            Prefix: raw-data
+            Transitions:
+              # The min value in days supported for transition to standard_ia storage is 30
+              - TransitionInDays: '45'
+                StorageClass: STANDARD_IA
+
+      ReplicationConfiguration:
+        Role: !GetAtt ReplicationRole.Arn
+        Rules:
+          - Id: "rawdata"
+            Status: Enabled
+            Prefix: "raw-data"
+            SourceSelectionCriteria:
+              SseKmsEncryptedObjects:
+                Status: Enabled
+            Destination:
+              Bucket: !Sub "arn:aws:s3:::${BackupBucket}"
+              StorageClass: STANDARD_IA
+              EncryptionConfiguration:
+                ReplicaKmsKeyID: !Ref KMSKeyArn
+          - Id: "prepareddata"
+            Status: Enabled
+            Prefix: "prepared-data"
+            SourceSelectionCriteria:
+              SseKmsEncryptedObjects:
+                Status: Enabled
+            Destination:
+              Bucket: !Sub "arn:aws:s3:::${BackupBucket}"
+              StorageClass: STANDARD_IA
+              EncryptionConfiguration:
+                ReplicaKmsKeyID: !Ref KMSKeyArn
+
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  BucketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref Bucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny non SSL connection
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Resource:
+              - !Sub "arn:aws:s3:::${Bucket}"
+              - !Sub "arn:aws:s3:::${Bucket}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+
+  ########################################################################################################################
+  # S3 EVENT
+  ########################################################################################################################
+  NewIncomingFilesNotification:
+    Type: Custom::S3BucketConfiguration
+    DependsOn: Bucket
+    Properties:
+      ServiceToken: !Ref BucketNotificationUpdaterLambda
+      Bucket: !Ref Bucket
+      NotificationConfiguration:
+        LambdaFunctionConfigurations:
+          - Events: [ 's3:ObjectCreated:*' ]
+            Id: !Sub "${Environment}-${Source}-new-incoming-files"
+            LambdaFunctionArn: !Ref LambdaLaunchIngestionWorkflowArn
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: prefix
+                    Value: !Sub "incoming/"
+
+
+  ########################################################################################################################
+  # BACKUP
+  ########################################################################################################################
+  BackupBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !Sub "${BucketPrefix}-${Source}-backup-${Environment}"
+      VersioningConfiguration:
+        Status: Enabled
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+
+  BackupBuketPolicy:
+    Type: "AWS::S3::BucketPolicy"
+    Properties:
+      Bucket: !Ref BackupBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny non SSL connection
+            Effect: Deny
+            Principal: "*"
+            Action:
+              - "s3:*"
+            Resource:
+              - !Sub "arn:aws:s3:::${BackupBucket}"
+              - !Sub "arn:aws:s3:::${BackupBucket}/*"
+            Condition:
+              Bool:
+                aws:SecureTransport: "false"
+
+  ReplicationRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${Environment}-s3-replication"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: s3.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Path: "/"
+      Policies:
+        - PolicyName: AllowReplication
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetReplicationConfiguration
+                  - s3:ListBucket
+                Resource: !Sub "arn:aws:s3:::${BucketName}"
+              - Effect: Allow
+                Action:
+                  - s3:GetObjectVersionForReplication
+                  - s3:GetObjectVersionAcl
+                  - s3:GetObjectVersionTagging
+                Resource: !Sub "arn:aws:s3:::${BucketName}/*"
+              - Effect: Allow
+                Action:
+                  - s3:ReplicateObject
+                  - s3:ReplicateDelete
+                  - s3:ReplicateTags
+                  - s3:ObjectOwnerOverrideToBucketOwner
+                Resource: !Sub "arn:aws:s3:::${BackupBucket}/*"
+        - PolicyName: AllowKMS
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kms:Encrypt"
+                  - "kms:Decrypt"
+                  - "kms:ReEncrypt*"
+                  - "kms:GenerateDataKey*"
+                  - "kms:DescribeKey"
+                Resource: !Ref KMSKeyArn

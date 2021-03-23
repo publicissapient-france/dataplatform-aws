@@ -50,6 +50,12 @@ usage() {
     echo "  - tp4-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
     echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
 
+    echo ""
+    echo "TP 8"
+    echo "  - tp8-deploy-s3-with-backup <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source with backup configuration"
+
+
+
 
 }
 
@@ -167,6 +173,21 @@ tp4-build-and-deploy-ingestion-workflow() {
     tp4-build-ingestion-workflow "$ENVIRONMENT"
     tp4-deploy-ingestion-workflow "$ENVIRONMENT" "$PACKAGE_VERSION"
 }
+
+########################################################################################################################
+#   TP 8
+########################################################################################################################
+tp8-deploy-s3-with-backup() {
+    ENVIRONMENT=$1
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+
+    deploy_generic_stack "$ENVIRONMENT" "tp8/s3.yaml" "" "$SOURCE"
+}
+
 
 
 fn_exists() {
