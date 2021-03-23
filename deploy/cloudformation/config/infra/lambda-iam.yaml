@@ -1,0 +1,3 @@
+stack_name: "lambda-iam"
+template_path: lambda-iam.yaml
+parameters:

@@ -25,8 +25,8 @@ usage() {
 
     echo ""
     echo "DEPLOY"
-    echo "  - deploy-lakeformation <ENVIRONMENT>: deploy lakeformation stack"
     echo "  - deploy-vpc <ENVIRONMENT>: deploy vpc stack"
+    echo "  - deploy-lambda-iam: deploy a lambda and a role"
 
     echo ""
     echo "TP 1"
@@ -68,14 +68,14 @@ setup-create-virtualenv() {
   echo "source ~/.venvs/formation/bin/activate"
 }
 
-deploy-lakeformation() {
-    ENVIRONMENT=$1
-    deploy_cloudformation_lakeformation "$AWS_PROFILE" "$ENVIRONMENT"
-}
 
 deploy-vpc() {
     ENVIRONMENT=$1
     deploy_generic_stack "$ENVIRONMENT" "infra/vpc.yaml"
+}
+deploy-lambda-iam() {
+    ENVIRONMENT="dev"
+    deploy_generic_stack "$ENVIRONMENT" "infra/lambda-iam.yaml"
 }
 
 

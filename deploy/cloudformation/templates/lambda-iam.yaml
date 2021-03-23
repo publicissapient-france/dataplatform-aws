@@ -1,0 +1,38 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Resources:
+  # Custom CFN resource for S3 notification update
+  Lambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Lambda test
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      FunctionName: !Sub "demo-iam"
+      Code:
+        ZipFile: |
+          import boto3
+          def handler(event, context):
+            s3 = boto3.client("s3")
+            s3.put_object(Body="demo test", Bucket="jpinsolle-test", ContentType="text/plain", Key="demo.txt")
+
+      Timeout: 30
+      Runtime: python3.7
+
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: demo-iam
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+              - lambda.amazonaws.com
+          Action:
+            - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
