@@ -6,4 +6,4 @@ parameters:
   KMSKeyArn: !stack_output_external {{ var.environment }}-dataplatform-kms::KMSKeyArn
   IngestionWorkflowRegistry: !stack_output_external {{ var.environment }}-dataplatform-ecr::IngestionWorkflowRegistry
   Version: "{{ var.Version }}"
-  EventbusName: "jpinsolle"
+  EventbusName: "{{ var.trainee }}"

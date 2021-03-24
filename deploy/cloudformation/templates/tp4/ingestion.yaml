@@ -22,6 +22,8 @@ Parameters:
 Outputs:
   LambdaLaunchStepFunctionsArn:
     Value: !GetAtt LambdaLaunchStepFunctions.Arn
+  IngestionWorkflowArn:
+    Value: !GetAtt IngestionWorkflow.Arn
 
 Resources:
 

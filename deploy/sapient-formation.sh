@@ -32,7 +32,7 @@ usage() {
     echo "TP 1"
     echo "  - tp1-deploy-kms <ENVIRONMENT>: deploy KMS key stack"
     echo "  - tp1-deploy-s3 <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source"
-    echo "  - tp1-deploy-ecr: deploy ecr"
+    echo "  - tp1-deploy-ecr <ENVIRONMENT>: deploy ecr"
 
     echo ""
     echo "TP 2"
@@ -49,6 +49,10 @@ usage() {
     echo "  - tp4-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
     echo "  - tp4-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
     echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
+
+    echo ""
+    echo "TP 6"
+    echo "  - tp6-deploy-athena-workshop <ENVIRONMENT> <SOURCE>: deploy the athena workflow"
 
     echo ""
     echo "TP 7"
@@ -107,7 +111,7 @@ tp1-deploy-s3() {
     deploy_generic_stack "$ENVIRONMENT" "tp1/s3.yaml" "" "$SOURCE"
 }
 tp1-deploy-ecr() {
-    ENVIRONMENT="dev"
+    ENVIRONMENT=$1
     deploy_generic_stack "$ENVIRONMENT" "tp1/ecr.yaml"
 }
 
@@ -177,6 +181,21 @@ tp4-build-and-deploy-ingestion-workflow() {
     tp4-build-ingestion-workflow "$ENVIRONMENT"
     tp4-deploy-ingestion-workflow "$ENVIRONMENT" "$PACKAGE_VERSION"
 }
+
+
+########################################################################################################################
+#   TP 6
+########################################################################################################################
+tp6-deploy-athena-workshop() {
+    ENVIRONMENT=$1
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+    deploy_generic_stack "$ENVIRONMENT" "tp6/athena-ctas.yaml" "" "$SOURCE"
+}
+
 
 ########################################################################################################################
 #   TP 7

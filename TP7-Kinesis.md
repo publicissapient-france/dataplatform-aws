@@ -1,5 +1,5 @@
 
-Le but de cet exercice est de mettre une application en temps réel via Kinesis.
+Le but de cet exercice est de déployer une application en temps réel via Kinesis.
 
 ##Le use case
 On reçoit sur notre dataplatform des events qui contiennent un UUID ainsi que l'endroit d'où a été généré l'event,
