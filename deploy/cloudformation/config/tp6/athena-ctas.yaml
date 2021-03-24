@@ -1,0 +1,15 @@
+stack_name: "{{ var.environment }}-dataplatform-athena-workshop"
+template_path: tp6/athena-ctas.yaml
+parameters:
+  IngestionWorkFlowArn: !stack_output_external {{ var.environment }}-dataplatform-ingestion-workflow::IngestionWorkflowArn
+  Environment: {{ var.environment }}
+  KmsArn: !stack_output_external {{ var.environment }}-dataplatform-kms::KMSKeyArn
+  EventbusName: {{ var.trainee }}
+  OutputLocation: !stack_output_external {{ var.environment }}-dataplatform-s3-{{ var.Source }}::BucketName
+  CTASQuery: CREATE table IF NOT EXISTS \"preprod-phones\".count_calls
+    WITH (format='PARQUET',parquet_compression='SNAPPY',partitioned_by=array['year'])
+    AS SELECT customer_id,max(cast(duration as INTEGER)) as max_duration , year
+    FROM \"preprod-phones\".calls
+    group by customer_id,year
+    having year='2021'
+    order by max_duration desc
