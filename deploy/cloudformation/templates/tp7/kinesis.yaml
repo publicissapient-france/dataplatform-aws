@@ -1,0 +1,155 @@
+AWSTemplateFormatVersion: 2010-09-09
+Outputs:
+  S3Bucket:
+    Value: !Ref S3Bucket
+  DeliveryStream:
+    Value: !Ref DeliveryStream
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      VersioningConfiguration:
+        Status: Enabled
+
+  DeliveryRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              Service: firehose.amazonaws.com
+            Action: 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                'sts:ExternalId': !Ref 'AWS::AccountId'
+
+  DeliveryPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: firehose_delivery_policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:AbortMultipartUpload'
+              - 's3:GetBucketLocation'
+              - 's3:GetObject'
+              - 's3:ListBucket'
+              - 's3:ListBucketMultipartUploads'
+              - 's3:PutObject'
+            Resource:
+              - !Sub 'arn:aws:s3:::${S3Bucket}'
+              - !Sub 'arn:aws:s3:::${S3Bucket}*'
+      Roles:
+        - !Ref DeliveryRole
+
+  InvokeLambdaPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: firehose_lambda_policy
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'lambda:InvokeFunction'
+            Resource:
+              - !GetAtt ProcessLambdaFunction.Arn
+      Roles:
+        - !Ref DeliveryRole
+
+  DeliveryStream:
+    Type: AWS::KinesisFirehose::DeliveryStream
+    Properties:
+      ExtendedS3DestinationConfiguration:
+        BucketARN: !Sub 'arn:aws:s3:::${S3Bucket}'
+        BufferingHints:
+          IntervalInSeconds: 60
+          SizeInMBs: 50
+        CompressionFormat: UNCOMPRESSED
+        Prefix: firehose/
+        RoleARN: !GetAtt DeliveryRole.Arn
+        ProcessingConfiguration:
+          Enabled: true
+          Processors:
+            - Parameters:
+                - ParameterName: LambdaArn
+                  ParameterValue: !GetAtt ProcessLambdaFunction.Arn
+              Type: Lambda
+
+  ProcessLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+        - PolicyName: allowLambdaLogs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+            - Effect: Allow
+              Action:
+              - logs:*
+              Resource: arn:aws:logs:*:*:*
+
+  ProcessLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: >
+          console.log('Loading function');
+
+          function filter(record) {
+            const entry = (new Buffer(record.data, 'base64')).toString('utf8');
+            const states_US = ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA",
+                    "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD",
+                    "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ",
+                    "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC",
+                    "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"];
+            var stateFiltered='"NY"';
+            var stateEntry = entry.split(':')[1].trim().slice(0, -1)
+            console.log(`State entry:${stateEntry}`)
+            const payload = (new Buffer(`New York State found !! for entry: ${entry}`, 'utf8')).toString('base64');
+            if ( stateEntry == stateFiltered)
+               return {
+                  recordId: record.recordId,
+                  result: 'Ok',
+                  data: payload
+              }
+            else
+              if (states_US.indexOf(stateEntry) > -1) //TODO
+                return {
+                    recordId: record.recordId,
+                    result: 'Dropped',
+                    data: record.data
+                }
+              else {
+                return {
+                    recordId: record.recordId,
+                    result: 'ProcessingFailed',
+                    data: record.data
+                }
+              }
+          }
+          exports.handler = async (event, context) => {
+            /* Process the list of records and transform them */
+            const output = event.records.map((record) => filter(record));
+            console.log(`Processing completed.  Successful records ${output.length}.`);
+            return { records: output };
+          };
+      Handler: index.handler
+      Role: !GetAtt ProcessLambdaExecutionRole.Arn
+      Runtime: nodejs12.x
+      Timeout: 60
+      MemorySize: 128

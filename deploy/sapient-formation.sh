@@ -51,6 +51,10 @@ usage() {
     echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
 
     echo ""
+    echo "TP 7"
+    echo "  - tp7-deploy-kinesis-workshop : deploy the kinesis stack"
+
+    echo ""
     echo "TP 8"
     echo "  - tp8-deploy-s3-with-backup <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source with backup configuration"
 
@@ -173,6 +177,15 @@ tp4-build-and-deploy-ingestion-workflow() {
     tp4-build-ingestion-workflow "$ENVIRONMENT"
     tp4-deploy-ingestion-workflow "$ENVIRONMENT" "$PACKAGE_VERSION"
 }
+
+########################################################################################################################
+#   TP 7
+########################################################################################################################
+tp7-deploy-kinesis-workshop() {
+    ENVIRONMENT=$1
+    deploy_generic_stack "$ENVIRONMENT" "tp7/kinesis.yaml" "" ""
+}
+
 
 ########################################################################################################################
 #   TP 8

@@ -1,0 +1,2 @@
+stack_name: "{{ var.environment }}-dataplatform-kinesis-workshop"
+template_path: tp7/kinesis.yaml
