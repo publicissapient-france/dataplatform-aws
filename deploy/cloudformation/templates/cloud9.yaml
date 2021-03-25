@@ -1,0 +1,37 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+    Description: Environment
+  AutomaticStopTimeMinutes:
+    Type: Number
+    Description: The number of minutes until the running instance is shut down after the environment was last used.
+    Default: 720
+  InstanceType:
+    Type: String
+    Description: The type of instance to connect to the environment
+    Default: t3.small
+  SubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Subnet id to deploy in
+  User:
+    Type: String
+    Description: IAM user to give access to cloud 9 environment
+
+
+Resources:
+  Cloud9:
+    Type: AWS::Cloud9::EnvironmentEC2
+    Properties:
+      Name: !Sub "${Environment}-training"
+      ConnectionType: CONNECT_SSM
+      AutomaticStopTimeMinutes: !Ref AutomaticStopTimeMinutes
+      Description: Cloud9 environment for training
+      InstanceType: !Ref InstanceType
+      SubnetId: !Ref SubnetId
+      OwnerArn: !Sub "arn:aws:iam::${AWS::AccountId}:user/${User}"
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment

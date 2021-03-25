@@ -1,0 +1,5 @@
+stack_name: "dataplatform-cloud9"
+template_path: cloud9.yaml
+parameters:
+  Environment: {{ var.environment }}
+  SubnetId: subnet-be0d9cd8

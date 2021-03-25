@@ -27,6 +27,7 @@ usage() {
     echo "DEPLOY"
     echo "  - deploy-vpc <ENVIRONMENT>: deploy vpc stack"
     echo "  - deploy-lambda-iam: deploy a lambda and a role"
+    echo "  - deploy-cloud9 <ENVIRONMENT>: deploy cloud9 environment"
 
     echo ""
     echo "TP 1"
@@ -90,6 +91,9 @@ setup-create-virtualenv() {
 deploy-vpc() {
     ENVIRONMENT=$1
     deploy_generic_stack "$ENVIRONMENT" "infra/vpc.yaml"
+}
+deploy-cloud9() {
+    deploy_generic_stack "$ENVIRONMENT" "infra/cloud9.yaml"
 }
 deploy-lambda-iam() {
     ENVIRONMENT="dev"

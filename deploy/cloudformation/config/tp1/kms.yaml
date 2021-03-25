@@ -1,4 +1,4 @@
 stack_name: "{{ var.environment }}-dataplatform-kms"
-template_path: tp1/kms.yaml
+template_path: tp1/reponses/kms.yaml
 parameters:
   Environment: {{ var.environment }}

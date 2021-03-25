@@ -1,15 +1,36 @@
 
-Le but de cet exercice est de déployer de prendre en main cloudformation et de 
-vérifier que vous êtes en mesure de déployer des stacks sur vos comptes.
+Le but de cet exercice est de déployer de prendre en main cloudformation/sceptre et de vérifier que vous êtes en mesure 
+de déployer des stacks sur vos comptes.
 
 
-Assurer vous d'être dans le dossier `dataplatform-aws` 
+## Étape 1 : Connexion à Cloud9
+Aller sur le service cloud 9 en cliquant directement [sur ce lien](https://eu-west-1.console.aws.amazon.com/cloud9/home?region=eu-west-1)
+
+Un environnement a été créé, ouvrer l'IDE
+![cloud9](./documentation/tp1/cloud9-service.png "cloud9")
+
+L'IDE est ouvert, il faut à présent cloner le repository github de la formation.
+Choisisez *Clone Repository* et rentrer l'url suivante : https://github.com/xebia-france/dataplatform-aws.git et appuyer sur la touche *Entrer"
+![cloud9](./documentation/tp1/cloud9-welcome.png "cloud9")
+
+
+
+
+Les exercices sont exécutable via une CLI afin de centraliser les commandes. Pour cela, assurer vous d'être dans le 
+dossier `dataplatform-aws` 
 ```shell
 cd dataplatform-aws/
-git checkout tp1
+./deploy/sapient-formation.sh
+```
+![cloud9](./documentation/tp1/cloud9-cd.png "cloud9")
+
+## Étape 2 : Installation de Sceptre
+Dans l'onglet bash lancer la commande suivante pour installer sceptre
+```
+pip install sceptre --user
 ```
 
-## Étape 1
+## Étape 3 : Deploiement des stacks de base
 Déployer les stack suivantes sur l'environnement `dev`
  * dev-dataplatform-kms
  * dev-dataplatform-s3
@@ -17,14 +38,14 @@ Déployer les stack suivantes sur l'environnement `dev`
  
 ```
 ./deploy/sapient-formation.sh tp1-deploy-kms dev
-./deploy/sapient-formation.sh tp1-deploy-s3 dev titanic
+./deploy/sapient-formation.sh tp1-deploy-s3 dev phone
 ./deploy/sapient-formation.sh tp1-deploy-ecr dev
 ```
 
 Vérifier les stacks déployées dans [le service cloudformation](https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1)
 
-## Étape 2
-Ajouter les outputs pertinents à vos stacks. Noter les différentes possibilités pour récupérer les valeurs
+## Étape 4 : 
+Ajouter les outputs pertinents à vos stacks. Notez les différentes possibilités pour récupérer les valeurs
 de retour de chaque ressource `Ref` pour le BucketName et `!GetAtt` pour l'ARN du bucket.
 
 Voir la liste des possibilités pour les curieux : [S3](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#aws-properties-s3-bucket-return-values),
@@ -37,11 +58,22 @@ Outputs:
     Value: !GetAtt KMSKey.Arn
 ```
 
+```
+./deploy/sapient-formation.sh tp1-deploy-kms dev
+```
+
 **dev-dataplatform-s3**
 ```yaml
 Outputs:
+  BucketName:
+    Value: !Ref Bucket
+
   BucketArn:
     Value: !GetAtt Bucket.Arn
+```
+
+```
+./deploy/sapient-formation.sh tp1-deploy-s3 dev phone
 ```
 
 **Résultat**
