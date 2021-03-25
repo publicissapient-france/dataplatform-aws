@@ -5,5 +5,5 @@ parameters:
   BucketPrefix: "{{ var.trainee }}-source"
   Source: "{{ var.Source }}"
   KMSKeyArn: !stack_output_external {{ var.environment }}-dataplatform-kms::KMSKeyArn
-  BucketNotificationUpdaterLambda: !stack_output_external {{ var.environment }}-dataplatform-s3-notification-updater::BucketNotificationUpdaterLambda
-  LambdaLaunchIngestionWorkflowArn: !stack_output_external {{ var.environment }}-dataplatform-ingestion-workflow::LambdaLaunchStepFunctionsArn
+#  BucketNotificationUpdaterLambda: !stack_output_external {{ var.environment }}-dataplatform-s3-notification-updater::BucketNotificationUpdaterLambda
+#  LambdaLaunchIngestionWorkflowArn: !stack_output_external {{ var.environment }}-dataplatform-ingestion-workflow::LambdaLaunchStepFunctionsArn
