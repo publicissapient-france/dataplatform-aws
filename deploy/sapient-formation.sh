@@ -51,6 +51,10 @@ usage() {
     echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
 
     echo ""
+    echo "TP 5"
+    echo "  - tp5-deploy-lakeformation-workshop <ENVIRONMENT>: deploy the lakeformation workshop"
+
+    echo ""
     echo "TP 6"
     echo "  - tp6-deploy-athena-workshop <ENVIRONMENT> <SOURCE>: deploy the athena workflow"
 
@@ -182,6 +186,13 @@ tp4-build-and-deploy-ingestion-workflow() {
     tp4-deploy-ingestion-workflow "$ENVIRONMENT" "$PACKAGE_VERSION"
 }
 
+########################################################################################################################
+#   TP 5
+########################################################################################################################
+tp5-deploy-lakeformation-workshop() {
+    ENVIRONMENT=$1
+    deploy_generic_stack "$ENVIRONMENT" "tp5/lakeformation.yaml" "" ""
+}
 
 ########################################################################################################################
 #   TP 6

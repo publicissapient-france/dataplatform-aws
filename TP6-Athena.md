@@ -1,4 +1,4 @@
-
+#Athena Workshop
 Le but de cet exercice est de manipuler des requêtes Athena via la console et via les stepfunctions.
 
 ##Le use case
