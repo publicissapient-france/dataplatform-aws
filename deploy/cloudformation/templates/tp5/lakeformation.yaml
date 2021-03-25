@@ -1,0 +1,160 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lake formation Workshop
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+  DataAnalystPass:
+    Type: String
+    Default: Azerty123!
+  DatalakeAdminUser:
+    Type: String
+    Default: mcherifi
+
+Resources:
+  LakeformationSettings:
+    Type: AWS::LakeFormation::DataLakeSettings
+    Properties:
+      Admins:
+        - DataLakePrincipalIdentifier: !Sub "arn:aws:iam::${AWS::AccountId}:user/${DatalakeAdminUser}"
+  SourceBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub 'lake-formation-demo-source-${AWS::Region}-${AWS::AccountId}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+  AthenaResultBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      AccessControl: Private
+      BucketName: !Sub 'lake-formation-demo-athena-result-bucket-${AWS::Region}-${AWS::AccountId}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  GlueDatabase:
+    Type: AWS::Glue::Database
+    Properties:
+      CatalogId: !Ref AWS::AccountId
+      DatabaseInput:
+        Name: lake_formation_titanic
+        Description: String
+
+  CrawlerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'glue.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+      Policies:
+        - PolicyName: 'root'
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'glue:*'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                  - 'logs:AssociateKmsKey'
+                Resource: '*'
+              - Effect: Allow
+                Action: 's3:ListBucket'
+                Resource: !GetAtt SourceBucket.Arn
+              - Effect: Allow
+                Action: 's3:GetObject'
+                Resource: !Sub
+                  - '${Bucket}/*'
+                  - { Bucket: !GetAtt SourceBucket.Arn }
+
+  Crawler:
+    Type: AWS::Glue::Crawler
+    Properties:
+      Name: lake-formation-demo-crawler
+      Role: !GetAtt CrawlerRole.Arn
+      DatabaseName: !Ref GlueDatabase
+      Targets:
+        S3Targets:
+          - Path: !Ref SourceBucket
+      SchemaChangePolicy:
+        UpdateBehavior: 'UPDATE_IN_DATABASE'
+        DeleteBehavior: 'LOG'
+
+  SourceCrawlerLakeGrants:
+    Type: AWS::LakeFormation::Permissions
+    Properties:
+      DataLakePrincipal:
+        DataLakePrincipalIdentifier: !GetAtt CrawlerRole.Arn
+      Permissions:
+        - ALTER
+        - DROP
+        - CREATE_TABLE
+      Resource:
+        DatabaseResource:
+          Name: !Ref GlueDatabase
+
+  DatalakeLocation:
+    Type: AWS::LakeFormation::Resource
+    Properties:
+      ResourceArn: !GetAtt  SourceBucket.Arn
+      RoleArn: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/lakeformation.amazonaws.com/AWSServiceRoleForLakeFormationDataAccess
+      UseServiceLinkedRole: true
+
+  DataAnalyst:
+    Type: 'AWS::IAM::User'
+    Properties:
+      UserName: DataAnalyst
+      Path: /
+      LoginProfile:
+        Password: !Ref DataAnalystPass
+        PasswordResetRequired: false
+      Policies:
+        - PolicyName: DatalakeUserBasic
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'lakeformation:GetDataAccess'
+                  - 'glue:GetTable'
+                  - 'glue:GetTables'
+                  - 'glue:SearchTables'
+                  - 'glue:GetDatabase'
+                  - 'glue:GetDatabases'
+                  - 'glue:GetPartitions'
+                Resource: '*'
+        - PolicyName: S3-Athena-Query-Result-Policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 's3:Put*'
+                  - 's3:Get*'
+                  - 's3:List*'
+                  - 's3:DeleteObject*'
+                Resource:
+                  - !GetAtt AthenaResultBucket.Arn
+                  - !Sub
+                    - '${Bucket}/*'
+                    - { Bucket: !GetAtt AthenaResultBucket.Arn }
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/AmazonAthenaFullAccess'

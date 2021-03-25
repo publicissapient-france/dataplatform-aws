@@ -1,4 +1,4 @@
-
+#Kinesis Workshop
 Le but de cet exercice est de déployer une application en temps réel via Kinesis.
 
 ##Le use case
