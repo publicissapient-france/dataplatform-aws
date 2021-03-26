@@ -35,8 +35,8 @@ La définition de la base de données se trouve dans le template `tp3/catalog.ya
 Vérifiez grâce à la console que la base de données a bien été créée.
 
 ## Étape 3 : Créer le job Glue
-Le template contenant le job Glue et son rôle associé se trouve ici : `tp3/glue.yaml`.
-Complétez-le en vous aidant des exemples donné dans le cours. Vous trouvez la solution ici : `tp3/reponses/glue.yaml`.
+Le template contenant le job Glue et son rôle associé se trouve ici : `deploy/cloudformation/tp3/glue.yaml`.
+Complétez-le en vous aidant des exemples donné dans le cours.
 
 Quelques informations importantes : 
 * Pensez bien à regarder les paramètres d'entrée de la stack, ils seront utiles.

@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Ingestion pipeline data-platform'
+Description: 'Glue Data Catalog'
 
 Parameters:
   Environment:
@@ -10,8 +10,11 @@ Parameters:
   Source:
     Type: String
 
-Resources:
+Outputs:
+  PreparedDataDatabase:
+    Value: !Ref PreparedDataDatabase
 
+Resources:
   PreparedDataDatabase:
     Type: AWS::Glue::Database
     Properties:
@@ -19,8 +22,3 @@ Resources:
       DatabaseInput:
         Name: !Sub "${Environment}-${Source}"
         Description: !Sub "Data processed and prepared from ${Source} Source"
-
-Outputs:
-
-  PreparedDataDatabase:
-    Value: !Ref PreparedDataDatabase

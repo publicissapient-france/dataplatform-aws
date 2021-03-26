@@ -1,6 +1,6 @@
 ---
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Ingestion pipeline data-platform'
+Description: 'Glue Job to convert csv into parquet'
 
 Parameters:
   Environment:
