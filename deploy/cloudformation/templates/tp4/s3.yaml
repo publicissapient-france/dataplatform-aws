@@ -12,12 +12,12 @@ Parameters:
     Type: String
     Description: ARN of the KMS key to encrypt the S3 bucket
 
-#  LambdaLaunchIngestionWorkflowArn:
-#    Type: String
-#    Description: ARN of the Lambda that trigger ingestion workflow
-#  BucketNotificationUpdaterLambda:
-#    Type: String
-#    Description: ARN of the Bucket Notification Updater Lambda
+  LambdaLaunchIngestionWorkflowArn:
+    Type: String
+    Description: ARN of the Lambda that trigger ingestion workflow
+  BucketNotificationUpdaterLambda:
+    Type: String
+    Description: ARN of the Bucket Notification Updater Lambda
 
 Outputs:
 
@@ -78,3 +78,24 @@ Resources:
             Condition:
               StringNotLikeIfExists:
                 s3:x-amz-server-side-encryption-aws-kms-key-id: !Ref KMSKeyArn
+
+
+#  ########################################################################################################################
+#  # S3 EVENT
+#  ########################################################################################################################
+  NewIncomingFilesNotification:
+    Type: Custom::S3BucketConfiguration
+    DependsOn: Bucket
+    Properties:
+      ServiceToken: !Ref BucketNotificationUpdaterLambda
+      Bucket: !Ref Bucket
+      NotificationConfiguration:
+        LambdaFunctionConfigurations:
+          - Events: [ 's3:ObjectCreated:*' ]
+            Id: !Sub "${Environment}-${Source}-new-incoming-files"
+            LambdaFunctionArn: !Ref LambdaLaunchIngestionWorkflowArn
+            Filter:
+              Key:
+                FilterRules:
+                  - Name: prefix
+                    Value: !Sub "incoming/"

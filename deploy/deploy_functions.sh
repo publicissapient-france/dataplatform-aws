@@ -7,22 +7,14 @@ function configure_proxy() {
     export http_proxy=$PROXY && export https_proxy=$PROXY && export no_proxy="169.254.169.254,localhost,s3-website-eu-west-1.amazonaws.com"
 }
 
-
-# Usage: install_ansible_requirements
-function install_deps() {
-    pip install ansible
-    pip install -r ${BASE_PATH}/deploy/kafka/ansible/requirements.txt
-    mkdir -p ~/.ansible/plugins/modules
-    ansible-galaxy install -r  ${BASE_PATH}/deploy/kafka/ansible/requirements.yml -p ~/.ansible/plugins/modules/
-}
-
-
-# Usage : install_python_requirements
+# Usage : install_lambda_python_requirements $OPTIONS
 function install_lambda_python_requirements() {
+    OPTIONS=$1
+
     EXEC_PWD=$PWD
     echo "Install python requirement for $BASE_PATH/lambdas"
     cd "$BASE_PATH/lambdas"
-    pip install -r requirements.txt
+    pip install -r requirements.txt $OPTIONS
 
     cd ${EXEC_PWD}
 }

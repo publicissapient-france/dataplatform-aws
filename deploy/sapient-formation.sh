@@ -21,6 +21,7 @@ usage() {
     echo ""
     echo "SETUP"
     echo "  - setup-install-lambda-python-requirements: install python requirements in the current virtualenv"
+    echo "  - setup-install-lambda-python-requirements-with-venv: install python requirements in the current virtualenv"
     echo "  - setup-create-virtualenv: create python virtualenv"
 
     echo ""
@@ -47,9 +48,10 @@ usage() {
 
     echo ""
     echo "TP 4"
-    echo "  - tp4-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
     echo "  - tp4-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
     echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
+    echo "  - tp4-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
+    echo "  - tp4-deploy-s3 <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source"
 
     echo ""
     echo "TP 5"
@@ -76,8 +78,12 @@ usage() {
 # SETUP
 ########################################################################################################################
 setup-install-lambda-python-requirements() {
-    install_lambda_python_requirements
+    install_lambda_python_requirements "--user"
 }
+setup-install-lambda-python-requirements-with-venv() {
+    install_lambda_python_requirements ""
+}
+
 
 setup-create-virtualenv() {
   python3 -m venv ~/.venvs/formation
@@ -184,10 +190,16 @@ tp4-deploy-ingestion-workflow() {
     deploy_generic_stack "$ENVIRONMENT" "tp4/ingestion.yaml" "$VERSION"
     display_version "$VERSION"
 }
-tp4-build-and-deploy-ingestion-workflow() {
+
+tp4-deploy-s3() {
     ENVIRONMENT=$1
-    tp4-build-ingestion-workflow "$ENVIRONMENT"
-    tp4-deploy-ingestion-workflow "$ENVIRONMENT" "$PACKAGE_VERSION"
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+
+    deploy_generic_stack "$ENVIRONMENT" "tp4/s3.yaml" "" "$SOURCE"
 }
 
 ########################################################################################################################
