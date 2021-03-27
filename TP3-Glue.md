@@ -69,12 +69,14 @@ Pour déployer votre job lancez la commande suivante :
 ```shell
 ./deploy/sapient-formation.sh tp3-deploy-glue dev
 ```
-Cette commande a 3 étapes
-* Construction du jar avec Maven
+Dans la mesure on Maven n'est pas installé sur Cloud9 et que son installation et le téléchargement des dépendances prend en certain temps, 
+nous avons fourni le jar qui se trouve dans le répertoire `csvtoparquet/jar/`. C'est celui-ci qui est uploadé par la fonction `tp3-deploy-glue`.
+Les commandes à exécuter en temps normal se trouvent dans la fonction `tp3-deploy-glue` mais sont commentées.
+
+Cette commande a 2 étapes : 
 * Upload du jar et du script Scala
 * Déploiement de la stack `tp3/glue.yaml`
 
-Si vous rencontrez un problème dans la construction du jar avec Maven, un jar déjà construit est disponible dans le répertoire `csvtoparquet/jar/`. Pour le déployer allez dans le fichier `deploy_functions.sh`. Dans la fonction `deploy_glue_job`, commentez la ligne de création du jar (`mvn clean package`) ainsi que la suivante qui upload le jar créé par Maven. Dé-commentez ensuite la ligne suivante qui uploadera le jar déjà prêt.
 
 ## Étape 5 : Lancer le job
 Pour lancer le job exécuter d'abord la commande suivante pour uploader des données dans le bucket : 
