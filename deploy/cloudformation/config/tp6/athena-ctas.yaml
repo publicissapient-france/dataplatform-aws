@@ -6,10 +6,10 @@ parameters:
   KmsArn: !stack_output_external {{ var.environment }}-dataplatform-kms::KMSKeyArn
   EventbusName: {{ var.trainee }}
   OutputLocation: !stack_output_external {{ var.environment }}-dataplatform-s3-{{ var.Source }}::BucketName
-  CTASQuery: CREATE table IF NOT EXISTS \"preprod-phones\".count_calls
+  CTASQuery: CREATE table IF NOT EXISTS \"{{ var.environment }}-phone\".count_calls
     WITH (format='PARQUET',parquet_compression='SNAPPY',partitioned_by=array['year'])
     AS SELECT customer_id,max(cast(duration as INTEGER)) as max_duration , year
-    FROM \"preprod-phones\".calls
+    FROM \"{{ var.environment }}-phone\".calls
     group by customer_id,year
     having year='2021'
     order by max_duration desc

@@ -18,15 +18,15 @@ Visualisez les données en cliquant sur `Preview table`:
 
 Maintenant modifier la requête pour calculer le nombre de ligne de notre table:
 ```shell
-select count(*) from "dev-phones".calls
+select count(*) from "dev-phone".calls
 ```
 ## Étape 2 : Exécuter une requête CTAS via Athena
 A présent pour calculer la requête d'analyse et la stocker dans une table dédiée, utilisez la CTAS suivante:
 ```shell
-CREATE table IF NOT EXISTS "preprod-phones".count_calls
+CREATE table IF NOT EXISTS "dev-phone".count_calls
     WITH (format='PARQUET',parquet_compression='SNAPPY',partitioned_by=array['year'])
     AS SELECT customer_id,max(cast(duration as INTEGER)) as max_duration , year
-    FROM "preprod-phones".calls
+    FROM "dev-phone".calls
     group by customer_id,year
     having year='2021'
     order by max_duration desc
@@ -45,7 +45,7 @@ cd dataplatform-aws/
 ```
 Ensuite déployer la stack
 ```shell
-./deploy/sapient-formation.sh tp6-deploy-athena-workshop dev phones
+./deploy/sapient-formation.sh tp6-deploy-athena-workshop dev phone
 ```
 En attendant la création de la stack, discutons un peu de la stack créé:
     * Notez comment est configurée la state machine:

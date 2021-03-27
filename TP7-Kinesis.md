@@ -1,13 +1,13 @@
-#Kinesis Workshop
+# Kinesis Workshop
 Le but de cet exercice est de déployer une application en temps réel via Kinesis.
 
-##Le use case
+## Le use case
 On reçoit sur notre dataplatform des events qui contiennent un UUID ainsi que l'endroit d'où a été généré l'event,
 le but de l'exercice est de filtrer ces events, par état, et de ne garder que l'état de New York --> "NY".
-Cependant, dans ces events reçus il y a des départements français qu'on souhaiterai mettre en erreur.
+Cependant, dans ces events reçus il y a des départements français qu'on souhaiterait mettre en erreur.
 
 
-##L'architecture de l'exercice
+## L'architecture de l'exercice
 ![Kinesis workshop](./documentation/tp7/kinesisworkshop.png "Kinesis workshop")
 
 ## Déroulement de l'exercice
@@ -50,7 +50,7 @@ En output de cette stack vous aurez:
 
 NB: Nous évoquerons dans le détail les éléments créés via ce template dans la suite de l'exercice.
 
-## Étape 3 : Etude la lambda qui filtre les données
+## Étape 4 : Etude la lambda qui filtre les données
 Pour répondre à notre besoin, il est possible d'appeler une lambda pluggé sur Kinesis Firehose pour effectuer nos traitements.
 Elle sera appelée à chaque fois que la configuration du buffering est atteinte.
 
@@ -91,7 +91,7 @@ Le traitement consiste:
   ```
 
 
-## Étape 4 : Envoi des données vers Kinesis
+## Étape 5 : Envoi des données vers Kinesis
 Pour procéder à l'envoi de ces events nous utiliserons un code python qui générera de la donnée ce type:
 ```
 {uuid: State} exemple: {"550e8400-e29b-41d4-a716-446655440000":"NY"}
@@ -110,7 +110,7 @@ Pour lancer le script, veuillez exécuter la commande suivante en utilisant le b
 ```shell
 python script/tp7/putRecordsKinesis.py <Nom du stream Kinesis créé>
 ```
-## Étape 5 : Verification des données
+## Étape 6 : Verification des données
 Après l'envoi de quelques events via le code Python, vous pouvez arrêter le script.
 
 Veuillez vous reportez sur le service S3 et consulter le bucket créer par la stack cloud formation.

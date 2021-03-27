@@ -141,7 +141,7 @@ tp2-deploy-s3() {
         exit 3
     fi
 
-    deploy_generic_stack "$ENVIRONMENT" "tp2/reponses/s3.yaml" "" "$SOURCE"
+    deploy_generic_stack "$ENVIRONMENT" "tp2/s3.yaml" "" "$SOURCE"
 }
 
 ########################################################################################################################

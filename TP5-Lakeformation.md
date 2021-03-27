@@ -1,9 +1,9 @@
-#LakeFormation Workshop
+# LakeFormation Workshop
 Le but de cet exercice est d'utiliser lake formation pour sécuriser l'accès à des données requêtées via Athena.
 
 Nous utiliserons aussi un crawler pour alimenter notre data platform.
 
-##Le use case
+## Le use case
 Nous avons reçu dans notre centre d'appels, des données sensibles que l'on doit gérer sur notre dataplatform, les passagers du titanic.
 
 Le but d'avoir ces données et de contacter par la suite la famille des rescapés pour une offre promotionnelle.
@@ -11,7 +11,7 @@ Le but d'avoir ces données et de contacter par la suite la famille des rescapé
 Cependant, pour restreindre l'accès aux données sensibles à notre nouveau data analyst fraîchement recruté, nous souhaitons, via lake formation,
 ne laisser l'accès qu'aux colonnes `pclass`,`name`, `age` de cette table.
 
-##Déroulement de l'exercice
+## Déroulement de l'exercice
 Pour répondre à ce besoin nous allons tout d'abord lancer une stack cloudformation qui nous créera le user `DataAnalyst et certains pré-requis.
 
 Nous allons par la suite ingérer la donnée via crawler.
@@ -44,21 +44,21 @@ Ensuite déployer la stack
 
 En attendant le déploiement, voyons en détail les resources créées et les configurations intéressantes de cette stack:
 
-* ####Définition de l'admin lakeformation:
+* #### Définition de l'admin lakeformation:
 ![CF1](./documentation/tp5/CF1.png "CF1")
   Nous allons à ce niveau référencer l'administrateur des données sur LakeFormation. Dans notre cas nous avons spécifier un user,
   qui en l'occurence sera vous même, mais dans un contexte hors démo, il est possible de le rajouter à un rôle IAM existant et de l'affecter à plusieurs users.
   
 
-* ####Rajout des permissions LakeFormation au role du crawler créé:
+* #### Rajout des permissions LakeFormation au role du crawler créé:
 ![CF2](./documentation/tp5/CF2.png "CF2")
 Notez que les dorits sont ocrtoyés à une seul database et sont restreint uniquement à la modification, suppression et création des tables.
   
-* ####Définition du DataLake location au niveau du service LakeFormation
+* #### Définition du DataLake location au niveau du service LakeFormation
 ![CF3](./documentation/tp5/CF3.png "CF3")
 Cette étape permettra de définir où seront stockés mes données et où les règles LakeFormation vont s'appliquer.
 
-* ####Définition du user DataAnalyst
+* #### Définition du user DataAnalyst
 ![CF3](./documentation/tp5/CF4.png "CF4")
 Notez les droits retreints du user et comment est configuré l'application des droits LakeFormation.
 Notez aussi le rajout des droits pour pouvoir écrire le resultat des requêtes Athena dans le bucket dédié.
@@ -73,7 +73,7 @@ Puis :
 ## Étape 4 : Déposer le fichier sur S3 et lancer le crawler
 
 ```shell
-Remplacer par votre account ID
+# Remplacer par votre account ID
 aws s3 cp data/titanic/passengers.csv s3://lake-formation-demo-source-eu-west-1-<AWS::AccountId>/passengers.csv
 ```
 
@@ -100,7 +100,7 @@ Reportez-vous ensuite sur le service Athena et configurer le bucket de sortie de
 Puis :
 ![LakeFormation4](./documentation/tp5/LakeFormation_4.png "LakeFormation4")
 
-Réaliser un select sur la table et notez qu'on a que les colonnes, définit plus haut qui sont exposés et pas les autres:
+Réaliser un select sur la table et notez qu'on ne retrouve que les colonnes définies plus haut qui sont exposés et pas les autres :
 ![LakeFormation3](./documentation/tp5/LakeFormation_3.png "LakeFormation3")
 
 Essayez maintenant de supprimer cette table, vous constaterez que ce n'est pas possible, une erreur `Insufficient Lake Formation Permission(s)`est remontée: 

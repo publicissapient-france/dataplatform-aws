@@ -1,7 +1,24 @@
+## Étape 0 Créer un virtualenv
+Vous pouvez si vous le souhaitez installer un virtualenv. Pour cela exécuter la commande : 
+```
+./deploy/sapient-formation.sh setup-create-virtualenv
+```
+
+Activez le virtualenv : 
+```
+source ~/.venvs/formation/bin/activate
+```
+
+
 ## Étape 1 : Build des lambdas
 Installez les dépendances python
 ```
 ./deploy/sapient-formation.sh setup-install-lambda-python-requirements
+```
+
+Ou si vous êtes dans un virtualenv
+```
+./deploy/sapient-formation.sh setup-install-lambda-python-requirements-with-venv
 ```
 
 Construisez l'image Docker des lambdas. Cette étape
@@ -54,12 +71,12 @@ dans le répertoire incoming.
 
 ## Étape 5 : Test
 ```shell
-aws s3 cp data/phone/customers.csv s3://jpinsolle-source-phone-dev/incoming/phone/customers.csv
-aws s3 cp data/phone/2021-01-01__calls.csv s3://jpinsolle-source-phone-dev/incoming/phone/2021-01-01__calls.csv
+aws s3 cp data/phone/customers.csv s3://<trainee>-source-phone-dev/incoming/phone/customers.csv
+aws s3 cp data/phone/2021-01-01__calls.csv s3://<trainee>-source-phone-dev/incoming/phone/2021-01-01__calls.csv
 ```
 
 
 # Développement Local
 ```
-docker run -ti -v ~/.aws:/root/.aws -e AWS_PROFILE=jpinsolle -p 9000:8080 767178862217.dkr.ecr.eu-west-1.amazonaws.com/ingestion-workflow:latest
+docker run -ti -v ~/.aws:/root/.aws -e AWS_PROFILE=<profile> -p 9000:8080 767178862217.dkr.ecr.eu-west-1.amazonaws.com/ingestion-workflow:latest
 ```

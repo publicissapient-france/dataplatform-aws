@@ -81,7 +81,7 @@ Cette commande a 2 étapes :
 ## Étape 5 : Lancer le job
 Pour lancer le job exécuter d'abord la commande suivante pour uploader des données dans le bucket : 
 ```shell
-aws s3 cp data/phone/customer.csv s3://<trainee>-source-phone-dev/raw-data/phone/customers/customers.csv
+aws s3 cp data/phone/customers.csv s3://<trainee>-source-phone-dev/raw-data/phone/customers/customers.csv
 ```
 
 Lancez le job Glue avec la commande suivante : 
