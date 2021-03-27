@@ -1,7 +1,7 @@
-#Athena Workshop
+# Athena Workshop
 Le but de cet exercice est de manipuler des requêtes Athena via la console et via les stepfunctions.
 
-##Le use case
+## Le use case
 Nous avons déjà en place une table `calls` qui contient les appels référencés par notre centre d'appel.
 Nous souhaitons dans un premier pouvoir visualiser et faire quelques analyses sur les données. et compter le nombre de lignes de la table via Athena.
 Ensuite nous souhaitons créer une table nommée `count_calls` qui contient la durée max d'un appel pour chaque `customer` 
