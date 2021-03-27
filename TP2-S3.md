@@ -11,19 +11,6 @@ Assurez-vous d'être dans le dossier `dataplatform-aws`
 cd dataplatform-aws/
 ```
 
-## Étape 0 : Configurer votre nom
-Le nom des buckets étant unique, nous allons configurer globalement dans sceptre la variable `trainee` qui servira à nommer le bucket.
-
-Fichier **deploy/cloudformation/variables.default.yaml**
-```yaml
-trainee: <A REMPLACER>
-```
-
-Exemple 
-```yaml
-trainee: jpinsolle
-```
-
 ## Étape 1 : Versioning
 Activer le versioning, [voir la documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-versioning)
 

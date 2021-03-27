@@ -30,7 +30,20 @@ Dans l'onglet bash lancer la commande suivante pour installer sceptre
 pip install sceptre --user
 ```
 
-## Étape 3 : Deploiement des stacks de base
+## Étape 3 : Configurer votre nom
+Le nom des buckets étant unique, nous allons configurer globalement dans sceptre la variable `trainee` qui servira à nommer le bucket.
+
+Fichier **deploy/cloudformation/variables.default.yaml**
+```yaml
+trainee: <A REMPLACER>
+```
+
+Exemple
+```yaml
+trainee: jpinsolle
+```
+
+## Étape 4 : Deploiement des stacks de base
 Avant de déployer les stacks ouvrez le fichier `deploy/cloudformation/variables.default.yaml`. Remplacez la valeur de l'attribut `trainee` par votre nom/identifiant. 
 Il sera utilisé pour la création de toutes vos resources.
 
@@ -47,7 +60,7 @@ Déployer les stack suivantes sur l'environnement `dev`
 
 Vérifier les stacks déployées dans [le service cloudformation](https://eu-west-1.console.aws.amazon.com/cloudformation/home?region=eu-west-1)
 
-## Étape 4 : 
+## Étape 5 : 
 Ajouter les outputs pertinents à vos stacks. Notez les différentes possibilités pour récupérer les valeurs
 de retour de chaque ressource `Ref` pour le BucketName et `!GetAtt` pour l'ARN du bucket.
 
