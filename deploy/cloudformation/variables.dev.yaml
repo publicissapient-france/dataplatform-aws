@@ -1,3 +1,4 @@
 ---
 environment: dev
 vpc_cidr: 192.168.42.0
+other_account_id: <A REMPLACER>

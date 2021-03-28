@@ -235,6 +235,20 @@ tp7-deploy-kinesis-workshop() {
     deploy_generic_stack "$ENVIRONMENT" "tp7/kinesis.yaml" "" ""
 }
 
+########################################################################################################################
+#   DEMO PARTAGER DES DONNÉES
+########################################################################################################################
+demo-share-data() {
+    ENVIRONMENT=$1
+    SOURCE=$2
+    if [[ -z "$SOURCE" ]] ; then
+        echo "Missing required parameter SOURCE"
+        exit 3
+    fi
+
+    deploy_generic_stack "$ENVIRONMENT" "demo-share/s3.yaml" "" "$SOURCE"
+    deploy_generic_stack "$ENVIRONMENT" "demo-share/kms.yaml" "" "$SOURCE"
+}
 
 ########################################################################################################################
 #   TP 8

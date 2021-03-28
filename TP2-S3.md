@@ -76,14 +76,14 @@ Regarder l'exemple pour avoir la structure de `PolicyDocument`. Les propriétés
 * Condition = Type `StringNotLikeIfExists` `s3:x-amz-server-side-encryption-aws-kms-key-id: !Ref KMSKeyArn`
 
 
-## Étape 5 Upload de données dans le bucket
+## Étape 5 : Upload de données dans le bucket
 
 Pour vérifier que votre configuration est correcte (chiffrement et versioning), vous pouvez uploader un fichier dans le bucket.
 
 ```shell
 # L'upload du fichier se fait sans spécifier de chiffrement, la configuration du bucket entre en jeu
-aws s3 cp data/phone/customer.csv s3://<trainee>-source-phone-dev/incoming/customers.csv
-aws s3 cp data/phone/customer.csv s3://<trainee>-source-phone-dev/incoming/2021-01-01__calls.csv
+aws s3 cp data/phone/customers.csv s3://<trainee>-source-phone-dev/incoming/customers.csv
+aws s3 cp data/phone/2021-01-01__calls.csv s3://<trainee>-source-phone-dev/incoming/2021-01-01__calls.csv
 ```
 
 Quand vous naviguez à l'aide de la console AWS sur le fichier, vous devriez voir que ce dernier est chiffré avec votre clé KMS.

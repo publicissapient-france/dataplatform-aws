@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+
+  OtherAccountId:
+    Type: String
+
+Outputs:
+  KMSKeyArn:
+    Value: !GetAtt KMSKey.Arn
+
+Resources:
+  KeyAlias:
+    Type: "AWS::KMS::Alias"
+    Properties:
+      AliasName: !Sub "alias/${Environment}-formation"
+      TargetKeyId: !Ref KMSKey
+
+  KMSKey:
+    Type: 'AWS::KMS::Key'
+    Properties:
+      KeyPolicy:
+        Version: 2012-10-17
+        Id: s3
+        Statement:
+          - Sid: Enable IAM User Permissions
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Sid: Allow other account to use key
+            Effect: Allow
+            Principal:
+              AWS: !Ref OtherAccountId
+            Action:
+              - "kms:Encrypt"
+              - "kms:Decrypt"
+              - "kms:ReEncrypt*"
+              - "kms:GenerateDataKey*"
+              - "kms:DescribeKey"
+            Resource: '*'
+
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+

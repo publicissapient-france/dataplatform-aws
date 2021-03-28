@@ -1,0 +1,6 @@
+stack_name: "{{ var.environment }}-dataplatform-kms"
+template_path: demo-share/kms.yaml
+parameters:
+  Environment: {{ var.environment }}
+
+  "OtherAccountId": "{{ var.other_account_id }}"

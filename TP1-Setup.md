@@ -44,9 +44,6 @@ trainee: jpinsolle
 ```
 
 ## Étape 4 : Deploiement des stacks de base
-Avant de déployer les stacks ouvrez le fichier `deploy/cloudformation/variables.default.yaml`. Remplacez la valeur de l'attribut `trainee` par votre nom/identifiant. 
-Il sera utilisé pour la création de toutes vos resources.
-
 Déployer les stack suivantes sur l'environnement `dev`
  * dev-dataplatform-kms
  * dev-dataplatform-s3
