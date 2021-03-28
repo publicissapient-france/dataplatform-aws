@@ -1,4 +1,4 @@
-## Étape 0 Créer un virtualenv
+## Étape 1 : Créer un virtualenv
 Vous pouvez si vous le souhaitez installer un virtualenv. Pour cela exécuter la commande : 
 ```
 ./deploy/sapient-formation.sh setup-create-virtualenv
@@ -10,7 +10,7 @@ source ~/.venvs/formation/bin/activate
 ```
 
 
-## Étape 1 : Build des lambdas
+## Étape 2 : Build des lambdas
 Installez les dépendances python
 ```
 ./deploy/sapient-formation.sh setup-install-lambda-python-requirements

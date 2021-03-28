@@ -4,7 +4,7 @@ parameters:
   IngestionWorkFlowArn: !stack_output_external {{ var.environment }}-dataplatform-ingestion-workflow::IngestionWorkflowArn
   Environment: {{ var.environment }}
   KmsArn: !stack_output_external {{ var.environment }}-dataplatform-kms::KMSKeyArn
-  EventbusName: {{ var.trainee }}
+  EventbusName: !stack_output_external {{ var.environment }}-dataplatform-eventbus::EventBusName
   OutputLocation: !stack_output_external {{ var.environment }}-dataplatform-s3-{{ var.Source }}::BucketName
   CTASQuery: CREATE table IF NOT EXISTS \"{{ var.environment }}-phone\".count_calls
     WITH (format='PARQUET',parquet_compression='SNAPPY',partitioned_by=array['year'])
