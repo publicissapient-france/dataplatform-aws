@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  Environment:
+    Type: String
+
+Outputs:
+
+  EventBusName:
+    Value: !Ref EventBus
+  EventBusArn:
+    Value: !GetAtt EventBus.Arn
+
+Resources:
+  EventBus:
+    Type: AWS::Events::EventBus
+    Properties:
+      Name: !Sub "${Environment}-dataplatform-eventbus"

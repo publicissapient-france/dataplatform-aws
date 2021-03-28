@@ -1,0 +1,4 @@
+stack_name: "{{ var.environment }}-dataplatform-eventbus"
+template_path: tp4/eventbus.yaml
+parameters:
+  Environment: {{ var.environment }}

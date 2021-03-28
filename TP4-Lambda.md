@@ -21,7 +21,7 @@ Ou si vous êtes dans un virtualenv
 ./deploy/sapient-formation.sh setup-install-lambda-python-requirements-with-venv
 ```
 
-Construisez l'image Docker des lambdas. Cette étape
+Construisez l'image Docker des lambdas. Cette étape : 
 * Génère un numéro de version qui est la date courante
 * Se connecte à l'ECR créé au du TP1
 * Construit une image à partir du fichier **lambdas/Dockerfile**.
@@ -41,13 +41,20 @@ latest: digest: sha256:5865e0197fb37ab4f7fb17d7dcd8d79b08c64b5881e095e0b4b5e2d6f
 ```
 
 
-## Étape 2 : Déploiement la chaine d'ingestion
+## Étape 3 : Déploiement de l'event bus
+L'eventbus est géré dans une stack dédiée car son cycle de vie est différent des autres stack
 
+```
+ ./deploy/sapient-formation.sh tp4-deploy-eventbus dev
+```
+
+
+## Étape 4 : Déploiement la chaine d'ingestion
 ```
  ./deploy/sapient-formation.sh tp4-deploy-ingestion-workflow dev <VERSION_A_REMPLACER>
 ```
 
-## Étape 3 : Déploiement de la lambda pour gérer les notifications S3
+## Étape 5 : Déploiement de la lambda pour gérer les notifications S3
 Le bucket S3 étant dans une autre stack cloudformation il est nécessaire de passer par un workaround pour configurer les
 events S3. La ressource `AWS::S3::Bucket` possède bien une propriété `NotificationConfiguration` mais cela implique de
 déclarer tout dans la même stack.
@@ -61,7 +68,7 @@ Nous créons donc une custom ressource pour ajouter les events à un bucket S3 e
 La lambda [dev-bucket-notification-updater-custom-cfn](https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/dev-bucket-notification-updater-custom-cfn?tab=code)
 a été crée. Elle sera appelée par le service Cloudformation pour ajouter l'event.
 
-## Étape 4 : Modification de la stack S3 pour gérer les événements
+## Étape 6 : Modification de la stack S3 pour gérer les événements
 
 La stack s3 du tp4 contient l'appel à la custom resource pour enregistrer le déclenchement d'une lambda sur l'upload d'un fichier
 dans le répertoire incoming.
@@ -69,7 +76,7 @@ dans le répertoire incoming.
 ./deploy/sapient-formation.sh tp4-deploy-s3 dev phone
 ```
 
-## Étape 5 : Test
+## Étape 7 : Test
 ```shell
 aws s3 cp data/phone/customers.csv s3://<trainee>-source-phone-dev/incoming/phone/customers.csv
 aws s3 cp data/phone/2021-01-01__calls.csv s3://<trainee>-source-phone-dev/incoming/phone/2021-01-01__calls.csv

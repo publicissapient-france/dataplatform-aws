@@ -50,6 +50,7 @@ usage() {
     echo "TP 4"
     echo "  - tp4-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
     echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
+    echo "  - tp4-deploy-eventbus <ENVIRONMENT> : deploy eventbridge"
     echo "  - tp4-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
     echo "  - tp4-deploy-s3 <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source"
 
@@ -68,9 +69,6 @@ usage() {
     echo ""
     echo "TP 8"
     echo "  - tp8-deploy-s3-with-backup <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source with backup configuration"
-
-
-
 
 }
 
@@ -182,6 +180,11 @@ tp4-build-ingestion-workflow() {
     ENVIRONMENT=$1
     build_lambda "$AWS_REGION" "$ENVIRONMENT" "$PACKAGE_VERSION"
     display_version "$VERSION"
+}
+
+tp4-deploy-eventbus() {
+    ENVIRONMENT=$1
+    deploy_generic_stack "$ENVIRONMENT" "tp4/eventbus.yaml"
 }
 
 tp4-deploy-ingestion-workflow() {
