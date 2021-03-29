@@ -14,10 +14,10 @@ cd dataplatform-aws/
 ## Étape 1 : Versioning
 Activer le versioning, [voir la documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-versioning)
 
-Le fichier à modifier est deploy/templates/tp2/s3.yaml. Une fois le versioning activé, lancer sceptre
+Le fichier à modifier est deploy/cloudformation/templates/tp2/s3.yaml. Une fois le versioning activé, lancer sceptre
  
 ```shell
-./deploy/sapient-formation.sh tp1-deploy-s3 dev phone
+./deploy/sapient-formation.sh tp2-deploy-s3 dev phone
 ```
 
 ## Étape 2 : Chiffrement
@@ -43,7 +43,7 @@ Compléter la ressource `Bucket` avec la propriété [BucketEncryption](https://
 
 ### Déployer
 ```
-./deploy/sapient-formation.sh tp1-deploy-s3 dev phone
+./deploy/sapient-formation.sh tp2-deploy-s3 dev phone
 ```
 
 ## Étape 3 : Life cycle
@@ -52,7 +52,7 @@ Passer les fichiers du prefix `raw-data` dans la classe `STANDARD_IA` au bout de
 
 Déployer
 ```
-./deploy/sapient-formation.sh tp1-deploy-s3 dev phone
+./deploy/sapient-formation.sh tp2-deploy-s3 dev phone
 ```
 
 ## Étape 4 : Autoriser uniquemement les fichiers chiffrés

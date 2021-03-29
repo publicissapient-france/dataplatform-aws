@@ -65,7 +65,7 @@ de retour de chaque ressource `Ref` pour le BucketName et `!GetAtt` pour l'ARN d
 Voir la liste des possibilités pour les curieux : [S3](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#aws-properties-s3-bucket-return-values),
 [KMS](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-kms-key.html#aws-resource-kms-key-return-values)
 
-**dev-dataplatform-kms**
+**deploy/cloudformation/templates/tp1/kms.yaml**
 ```yaml
 Outputs:
   KMSKeyArn:
@@ -76,7 +76,7 @@ Outputs:
 ./deploy/sapient-formation.sh tp1-deploy-kms dev
 ```
 
-**dev-dataplatform-s3**
+**deploy/cloudformation/templates/tp1/s3.yaml**
 ```yaml
 Outputs:
   BucketName:
