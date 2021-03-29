@@ -1,8 +1,0 @@
-stack_name: "{{ var.environment }}-dataplatform-lakeformation"
-template_path: lakeformation.yaml
-parameters:
-  Environment: {{ var.environment }}
-  BucketArn: !stack_output_external {{ var.environment }}-dataplatform-s3::BucketArn
-  BucketBusinessDataArn: !stack_output_external {{ var.environment }}-dataplatform-s3::BucketBusinessDataArn
-  KMSArn: !stack_output_external {{ var.environment }}-dataplatform-s3::KMSKeyArn
-  DatalakeAdminUser: {{ var.trainee }}
