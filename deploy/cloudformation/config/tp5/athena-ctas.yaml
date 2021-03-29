@@ -1,5 +1,5 @@
 stack_name: "{{ var.environment }}-dataplatform-athena-workshop"
-template_path: tp6/athena-ctas.yaml
+template_path: tp5/athena-ctas.yaml
 parameters:
   IngestionWorkFlowArn: !stack_output_external {{ var.environment }}-dataplatform-ingestion-workflow::IngestionWorkflowArn
   Environment: {{ var.environment }}

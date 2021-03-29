@@ -56,11 +56,11 @@ usage() {
 
     echo ""
     echo "TP 5"
-    echo "  - tp5-deploy-lakeformation-workshop <ENVIRONMENT>: deploy the lakeformation workshop"
+    echo "  - tp5-deploy-athena-workshop <ENVIRONMENT> <SOURCE>: deploy the athena workflow"
 
     echo ""
     echo "TP 6"
-    echo "  - tp6-deploy-athena-workshop <ENVIRONMENT> <SOURCE>: deploy the athena workflow"
+    echo "  - tp6-deploy-lakeformation-workshop <ENVIRONMENT>: deploy the lakeformation workshop"
 
     echo ""
     echo "TP 7"
@@ -208,24 +208,23 @@ tp4-deploy-s3() {
 ########################################################################################################################
 #   TP 5
 ########################################################################################################################
-tp5-deploy-lakeformation-workshop() {
-    ENVIRONMENT=$1
-    deploy_generic_stack "$ENVIRONMENT" "tp5/lakeformation.yaml" "" ""
-}
-
-########################################################################################################################
-#   TP 6
-########################################################################################################################
-tp6-deploy-athena-workshop() {
+tp5-deploy-athena-workshop() {
     ENVIRONMENT=$1
     SOURCE=$2
     if [[ -z "$SOURCE" ]] ; then
         echo "Missing required parameter SOURCE"
         exit 3
     fi
-    deploy_generic_stack "$ENVIRONMENT" "tp6/athena-ctas.yaml" "" "$SOURCE"
+    deploy_generic_stack "$ENVIRONMENT" "tp5/athena-ctas.yaml" "" "$SOURCE"
 }
 
+########################################################################################################################
+#   TP 6
+########################################################################################################################
+tp6-deploy-lakeformation-workshop() {
+    ENVIRONMENT=$1
+    deploy_generic_stack "$ENVIRONMENT" "tp6/lakeformation.yaml" "" ""
+}
 
 ########################################################################################################################
 #   TP 7

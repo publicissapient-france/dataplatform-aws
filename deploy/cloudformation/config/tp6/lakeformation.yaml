@@ -1,5 +1,5 @@
 stack_name: "{{ var.environment }}-dataplatform-lakeformation-workshop"
-template_path: tp5/lakeformation.yaml
+template_path: tp6/lakeformation.yaml
 parameters:
   Environment: {{ var.environment }}
   DataAnalystPass: Azerty123!

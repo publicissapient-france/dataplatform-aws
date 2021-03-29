@@ -14,7 +14,7 @@ Rendez-vous sur le service Athena puis avant toute chose configurez l'endroit de
 Une fois l'endroit de sauvegarde renseigné, choisissez la database créé par le job Glue en l'occurence `dev-phones`.
 Vous remarquerez la table nouvellement créée ainsi que leur colonnes et leur typages.
 Visualisez les données en cliquant sur `Preview table`:
-![athenaSelect](./documentation/tp6/athenaselect.png "athenaSelect")
+![athenaSelect](./documentation/tp5/athenaselect.png "athenaSelect")
 
 Maintenant modifier la requête pour calculer le nombre de ligne de notre table:
 ```shell
@@ -49,9 +49,9 @@ Ensuite déployer la stack
 ```
 En attendant la création de la stack, discutons un peu de la stack créé:
     * Notez comment est configurée la state machine:
-![stateMachine](./documentation/tp6/statemachine.png "stateMachine")
+![stateMachine](./documentation/tp5/statemachine.png "stateMachine")
     * Notez aussi comment configuré l'eventRule:
-![eventRule](./documentation/tp6/eventrule.png "eventRule")
+![eventRule](./documentation/tp5/eventrule.png "eventRule")
 
 
 Après la fin du déploiement de la stack veuillez déposer un fichier dans le bucket source à l'endroit approprié pour lancer 
