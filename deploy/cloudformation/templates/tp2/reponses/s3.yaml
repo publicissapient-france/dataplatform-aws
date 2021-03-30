@@ -12,13 +12,6 @@ Parameters:
     Type: String
     Description: ARN of the KMS key to encrypt the S3 bucket
 
-#  LambdaLaunchIngestionWorkflowArn:
-#    Type: String
-#    Description: ARN of the Lambda that trigger ingestion workflow
-#  BucketNotificationUpdaterLambda:
-#    Type: String
-#    Description: ARN of the Bucket Notification Updater Lambda
-
 Outputs:
 
   BucketName:
