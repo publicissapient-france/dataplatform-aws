@@ -1,4 +1,0 @@
-stack_name: "{{ var.environment }}-dataplatform-s3-notification-updater"
-template_path: "tp4/s3-notification-updater.yaml"
-parameters:
-  Environment: "{{ var.environment }}"

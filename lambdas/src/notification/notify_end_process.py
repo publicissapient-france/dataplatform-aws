@@ -42,23 +42,22 @@ def process(event: dict, eventbus_name: str):
                  extra={"error": failed_step['executionFailedEventDetails'], "executionArn": execution_arn,
                         "stateMachineArn": state_machine_arn, "input": ingestion_event})
 
-    details = {
-        "SourceName": ingestion_event.datasource_name,
-        "Environment": ingestion_event.environment,
-        "CorrelationId": ingestion_event.correlation_id,
-        "status": state
+    event_payload = {
+        'Time': time,
+        'Source': 'datalake.ingestion',
+        'DetailType': f"ingestion-{state}",
+        'Detail': json.dumps({
+            "SourceName": ingestion_event.datasource_name,
+            "Environment": ingestion_event.environment,
+            "CorrelationId": ingestion_event.correlation_id,
+            "status": state
+        }),
+        'EventBusName': eventbus_name
     }
-    events_client.put_events(
-        Entries=[
-            {
-                'Time': time,
-                'Source': 'datalake.ingestion',
-                'DetailType': f"ingestion-{state}",
-                'Detail': json.dumps(details),
-                'EventBusName': eventbus_name,
-            }
-        ]
-    )
+    logger.debug(f"Send event in eventbridge {event_payload}")
+
+    response = events_client.put_events(Entries=[event_payload])
+    logger.debug(f"Response for put_events {response}")
 
 
 def get_step_functions_history(sfn_client, execution_arn: str):

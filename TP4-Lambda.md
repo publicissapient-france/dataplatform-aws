@@ -1,4 +1,5 @@
 ## Étape 1 : Créer un virtualenv
+Si vous êtes sur cloud9 cette étape est facultative. Sur votre poste de développeur, il est 
 Vous pouvez si vous le souhaitez installer un virtualenv. Pour cela exécuter la commande : 
 ```
 ./deploy/sapient-formation.sh setup-create-virtualenv
@@ -8,7 +9,6 @@ Activez le virtualenv :
 ```
 source ~/.venvs/formation/bin/activate
 ```
-
 
 ## Étape 2 : Build des lambdas
 Installez les dépendances python
@@ -45,13 +45,13 @@ latest: digest: sha256:5865e0197fb37ab4f7fb17d7dcd8d79b08c64b5881e095e0b4b5e2d6f
 L'eventbus est géré dans une stack dédiée car son cycle de vie est différent des autres stack
 
 ```
- ./deploy/sapient-formation.sh tp4-deploy-eventbus dev
+./deploy/sapient-formation.sh tp4-deploy-eventbus dev
 ```
 
 
 ## Étape 4 : Déploiement la chaine d'ingestion
 ```
- ./deploy/sapient-formation.sh tp4-deploy-ingestion-workflow dev <VERSION_A_REMPLACER>
+./deploy/sapient-formation.sh tp4-deploy-ingestion-workflow dev <VERSION_A_REMPLACER>
 ```
 
 ## Étape 5 : Déploiement de la lambda pour gérer les notifications S3

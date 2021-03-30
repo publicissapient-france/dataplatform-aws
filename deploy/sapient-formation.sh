@@ -48,10 +48,9 @@ usage() {
 
     echo ""
     echo "TP 4"
+    echo "  - tp4-deploy-eventbus <ENVIRONMENT> : deploy eventbridge"
     echo "  - tp4-build-ingestion-workflow <ENVIRONMENT> : build lambda for ingestion workflow"
     echo "  - tp4-deploy-ingestion-workflow <ENVIRONMENT> <VERSION>: deploy the ingestion workflow"
-    echo "  - tp4-deploy-eventbus <ENVIRONMENT> : deploy eventbridge"
-    echo "  - tp4-deploy-custom-s3-notification-custom-resource <ENVIRONMENT>: deploy cloudformation custom resource to register events"
     echo "  - tp4-deploy-s3 <ENVIRONMENT> <SOURCE>: deploy the s3 stack for a source"
 
     echo ""
@@ -171,11 +170,6 @@ tp3-deploy-glue() {
 ########################################################################################################################
 #   TP 4
 ########################################################################################################################
-tp4-deploy-custom-s3-notification-custom-resource() {
-    ENVIRONMENT=$1
-    deploy_generic_stack "$ENVIRONMENT" "tp4/s3-notification-updater.yaml"
-}
-
 tp4-build-ingestion-workflow() {
     ENVIRONMENT=$1
     build_lambda "$AWS_REGION" "$ENVIRONMENT" "$PACKAGE_VERSION"

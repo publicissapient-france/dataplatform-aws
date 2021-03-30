@@ -15,9 +15,6 @@ Parameters:
   LambdaLaunchIngestionWorkflowArn:
     Type: String
     Description: ARN of the Lambda that trigger ingestion workflow
-  BucketNotificationUpdaterLambda:
-    Type: String
-    Description: ARN of the Bucket Notification Updater Lambda
 
 Outputs:
 
@@ -48,6 +45,16 @@ Resources:
               # The min value in days supported for transition to standard_ia storage is 30
               - TransitionInDays: '45'
                 StorageClass: STANDARD_IA
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Filter:
+              S3Key:
+                Rules:
+                  - Name: prefix
+                    Value: !Sub "incoming/"
+            Function: !Ref LambdaLaunchIngestionWorkflowArn
+
       Tags:
         - Key: Environment
           Value: !Ref Environment
@@ -78,24 +85,3 @@ Resources:
             Condition:
               StringNotLikeIfExists:
                 s3:x-amz-server-side-encryption-aws-kms-key-id: !Ref KMSKeyArn
-
-
-#  ########################################################################################################################
-#  # S3 EVENT
-#  ########################################################################################################################
-  NewIncomingFilesNotification:
-    Type: Custom::S3BucketConfiguration
-    DependsOn: Bucket
-    Properties:
-      ServiceToken: !Ref BucketNotificationUpdaterLambda
-      Bucket: !Ref Bucket
-      NotificationConfiguration:
-        LambdaFunctionConfigurations:
-          - Events: [ 's3:ObjectCreated:*' ]
-            Id: !Sub "${Environment}-${Source}-new-incoming-files"
-            LambdaFunctionArn: !Ref LambdaLaunchIngestionWorkflowArn
-            Filter:
-              Key:
-                FilterRules:
-                  - Name: prefix
-                    Value: !Sub "incoming/"
