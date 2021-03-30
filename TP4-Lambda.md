@@ -54,21 +54,7 @@ L'eventbus est géré dans une stack dédiée car son cycle de vie est différen
 ./deploy/sapient-formation.sh tp4-deploy-ingestion-workflow dev <VERSION_A_REMPLACER>
 ```
 
-## Étape 5 : Déploiement de la lambda pour gérer les notifications S3
-Le bucket S3 étant dans une autre stack cloudformation il est nécessaire de passer par un workaround pour configurer les
-events S3. La ressource `AWS::S3::Bucket` possède bien une propriété `NotificationConfiguration` mais cela implique de
-déclarer tout dans la même stack.
-
-Nous créons donc une custom ressource pour ajouter les events à un bucket S3 existant. Pour cela, déployez la stack adéquat
-
-```
-./deploy/sapient-formation.sh tp4-deploy-custom-s3-notification-custom-resource dev
-```
-
-La lambda [dev-bucket-notification-updater-custom-cfn](https://eu-west-1.console.aws.amazon.com/lambda/home?region=eu-west-1#/functions/dev-bucket-notification-updater-custom-cfn?tab=code)
-a été crée. Elle sera appelée par le service Cloudformation pour ajouter l'event.
-
-## Étape 6 : Modification de la stack S3 pour gérer les événements
+## Étape 5 : Modification de la stack S3 pour gérer les événements
 
 La stack s3 du tp4 contient l'appel à la custom resource pour enregistrer le déclenchement d'une lambda sur l'upload d'un fichier
 dans le répertoire incoming.
@@ -76,7 +62,7 @@ dans le répertoire incoming.
 ./deploy/sapient-formation.sh tp4-deploy-s3 dev phone
 ```
 
-## Étape 7 : Test
+## Étape 6 : Test
 ```shell
 aws s3 cp data/phone/customers.csv s3://<trainee>-source-phone-dev/incoming/phone/customers.csv
 aws s3 cp data/phone/2021-01-01__calls.csv s3://<trainee>-source-phone-dev/incoming/phone/2021-01-01__calls.csv
