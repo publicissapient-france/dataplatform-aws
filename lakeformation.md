@@ -130,8 +130,3 @@ Formation permissions to read the data locations. For more information, see Crea
     * Impossible de supprimer une permission si la table n'existe plus. Au bout de 3 tentatives l'erreur est ignorée  
     DataAnalystUserPermissions AWS::LakeFormation::Permissions DELETE_FAILED Table: passenger not found. (Service: AWSLakeFormation; Status Code: 400; Error Code: InvalidInputException;)
     * Impossible de créer une permission sur une resource non existente. 
-
-#TODO
-* Créer un rôle qui a la permission `Super` sur toutes les bases de données ainsi que sur les tables. 
-Impossible aujourd'hui de donner le wildcard sur toutes les tables via Cloudformation. 
---> Role sur le job Glue qui va traiter toutes les sources
