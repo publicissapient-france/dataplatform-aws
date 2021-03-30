@@ -57,4 +57,5 @@ En attendant la création de la stack, discutons un peu de la stack créé:
 Après la fin du déploiement de la stack veuillez déposer un fichier dans le bucket source à l'endroit approprié pour lancer 
 les traitements.
 
+Une fois les deux step functions terminées, consultez la table nouvellement créée `count_calls` via Athena.
 
