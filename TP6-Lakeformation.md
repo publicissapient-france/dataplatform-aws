@@ -52,19 +52,19 @@ En attendant le déploiement, voyons en détail les resources créées et les co
 
 * #### Rajout des permissions LakeFormation au role du crawler créé:
 ![CF2](./documentation/tp6/CF2.png "CF2")
-Notez que les dorits sont ocrtoyés à une seul database et sont restreint uniquement à la modification, suppression et création des tables.
+Notez que les droits sont octroyés à une seule database et sont restreints uniquement à la modification, suppression et création des tables.
   
 * #### Définition du DataLake location au niveau du service LakeFormation
 ![CF3](./documentation/tp6/CF3.png "CF3")
-Cette étape permettra de définir où seront stockés mes données et où les règles LakeFormation vont s'appliquer.
+Cette étape permettra de définir où seront stockées mes données et où les règles LakeFormation vont s'appliquer.
 
 * #### Définition du user DataAnalyst
 ![CF3](./documentation/tp6/CF4.png "CF4")
-Notez les droits retreints du user et comment est configuré l'application des droits LakeFormation.
+Notez les droits retreints du user et comment est configurée l'application des droits LakeFormation.
 Notez aussi le rajout des droits pour pouvoir écrire le resultat des requêtes Athena dans le bucket dédié.
 
 ## Étape 3 : Rajouter les droits sur les données pour le crawler
-Actuellement, nous avons affecté des droits uniquement au niveau des tables (au sens Glue) mais pas aux données sauvegardés dans S3.
+Actuellement, nous avons affecté des droits uniquement au niveau des tables (au sens Glue) mais pas aux données sauvegardées dans S3.
 Pour cela nous allons utiliser la console pour octroyer ces droits, et les rajouter au rôle du crawler:
 ![LakeFormation12](./documentation/tp6/LakeFormation_12.png "LakeFormation12")
 Puis :
@@ -84,7 +84,7 @@ aws glue start-crawler --name lake-formation-demo-crawler
 
 ## Étape 5 : Donner les droits requis au data analyst
 Dans cette étape, nous allons affecter les droits nécessaires au data analyst avec Lake Formation.
-Pour cela, accéder au service Lake Formation puis dans le panel `Tables` cliquez sur `Grant` en sélectionnant la table nouvellement créée:
+Pour cela, allez au service Lake Formation puis dans le panel `Tables` cliquez sur `Grant` en sélectionnant la table nouvellement créée:
 ![LakeFormation8](./documentation/tp6/LakeFormation_8.png "LakeFormation8")
 
 À ce niveau, sélectionner le user créé avec les droits désirés, notez aussi qu'on peut faire l'opération inverse, 
