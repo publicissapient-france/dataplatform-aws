@@ -28,7 +28,7 @@ Il est composé de:
 * NB: Vous pouvez noter aussi qu'on peut déposer les données dans un chemin particulier en utilisant la partie ```Prefix```
 
 
-## Étape 3 : Lancement de la stack Kinesis
+## Étape 2 : Lancement de la stack Kinesis
 Cette étape nous permettra de déployer:
 
 * Un bucket S3 qui contiendra les données résultantes
@@ -50,7 +50,7 @@ En output de cette stack vous aurez:
 
 NB: Nous évoquerons dans le détail les éléments créés via ce template dans la suite de l'exercice.
 
-## Étape 4 : Etude la lambda qui filtre les données
+## Étape 3 : Etude la lambda qui filtre les données
 Pour répondre à notre besoin, il est possible d'appeler une lambda pluggé sur Kinesis Firehose pour effectuer nos traitements.
 Elle sera appelée à chaque fois que la configuration du buffering est atteinte.
 
@@ -91,7 +91,7 @@ Le traitement consiste:
   ```
 
 
-## Étape 5 : Envoi des données vers Kinesis
+## Étape 4 : Envoi des données vers Kinesis
 Pour procéder à l'envoi de ces events nous utiliserons un code python qui générera de la donnée ce type:
 ```
 {uuid: State} exemple: {"550e8400-e29b-41d4-a716-446655440000":"NY"}
@@ -110,7 +110,7 @@ Pour lancer le script, veuillez exécuter la commande suivante en utilisant le b
 ```shell
 python script/tp7/putRecordsKinesis.py <Nom du stream Kinesis créé>
 ```
-## Étape 6 : Verification des données
+## Étape 5 : Verification des données
 Après l'envoi de quelques events via le code Python, vous pouvez arrêter le script.
 
 Veuillez vous reportez sur le service S3 et consulter le bucket créer par la stack cloud formation.
