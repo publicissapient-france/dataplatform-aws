@@ -119,7 +119,7 @@ Notez que notre préfixe à bien été pris en compte en appliquant générant d
 
 Ce dossier comportera les records en fail, ainsi que les records ayant le statut 'Ok'.
 
-Les fichiers déposés sont répetoriés dans une arborescence `/Année/Mois/Jour/Heure` qui correspond à la date de production du fichier.
+Les fichiers déposés sont répertoriés dans une arborescence `/Année/Mois/Jour/Heure` qui correspond à la date de production du fichier.
 
 Pour consulter facilement un fichier, utilisons la fonction Query with S3 Select du service S3:
 
