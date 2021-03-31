@@ -45,7 +45,7 @@ cd dataplatform-aws/
 ```
 Ensuite déployer la stack
 ```shell
-./deploy/sapient-formation.sh tp6-deploy-athena-workshop dev phone
+./deploy/sapient-formation.sh tp5-deploy-athena-workshop dev phone
 ```
 En attendant la création de la stack, discutons un peu de la stack créé:
     * Notez comment est configurée la state machine:
