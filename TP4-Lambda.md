@@ -1,6 +1,6 @@
 ## Étape 1 : Créer un virtualenv
-Si vous êtes sur cloud9 cette étape est facultative. Sur votre poste de développeur, il est 
-Vous pouvez si vous le souhaitez installer un virtualenv. Pour cela exécuter la commande : 
+Si vous êtes sur cloud9 cette étape est facultative. Sur votre poste de développeur,
+vous pouvez installer un virtualenv si vous le souhaitez. Pour cela exécuter la commande : 
 ```
 ./deploy/sapient-formation.sh setup-create-virtualenv
 ```
