@@ -32,7 +32,7 @@ pip install sceptre --user
 
 ## Étape 3 : Configurer votre nom
 Le nom des buckets étant unique, nous allons configurer globalement dans sceptre la variable `trainee` qui servira à nommer le bucket.
-La valeur doit être en **minuscule**, peut contenir des chiffres, des “.” et des “-”.
+La valeur doit être en **minuscule**, peut contenir des chiffres et des “.”. *ATENTION* ne pas utiliser le character "-", nous utilisons ce character comme separateur pour certains jobs. 
 
 Fichier **deploy/cloudformation/variables.default.yaml**
 ```yaml
