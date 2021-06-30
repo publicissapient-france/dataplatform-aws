@@ -5,7 +5,7 @@ Le fichier de l'exercice est le suivant `tp8/s3.yaml`. Cette stack reprend la st
 
 Le but est de modifier la configuration du bucket déjà créé pour activer le backup.
 
-Vous pouvez si vous préférez partir de votre propre template du TP3. Parcourez dans tous les cas le template du TP8, plusieurs choses ont été ajoutées : 
+Vous pouvez si vous préférez partir de votre propre template du TP4. Parcourez dans tous les cas le template du TP8, plusieurs choses ont été ajoutées : 
 * La partie `ReplicationConfiguration` dans la définition du bucket principal à compléter
 * La définition du bucket de backup et de sa policy associée à compléter
 * La définition du rôle pour le backup qui vous est fournit
