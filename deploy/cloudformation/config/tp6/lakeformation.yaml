@@ -3,4 +3,4 @@ template_path: tp6/lakeformation.yaml
 parameters:
   Environment: {{ var.environment }}
   DataAnalystPass: Azerty123!
-  DatalakeAdminUser: {{ var.trainee }}
+  DatalakeAdminUser: training

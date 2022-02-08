@@ -10,7 +10,6 @@ Parameters:
     Default: Azerty123!
   DatalakeAdminUser:
     Type: String
-    Default: mcherifi
 
 Resources:
   LakeformationSettings:

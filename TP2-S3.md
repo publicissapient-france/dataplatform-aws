@@ -1,4 +1,4 @@
-
+# TP2-S3
 Le but de cet exercice est d'enrichir la configuration du bucket S3 du TP1
 * Versioning
 * Chiffrement par défaut
@@ -48,7 +48,7 @@ Compléter la ressource `Bucket` avec la propriété [BucketEncryption](https://
 
 ## Étape 3 : Life cycle
 Passer les fichiers du prefix `raw-data` dans la classe `STANDARD_IA` au bout de 45 jours,
-[voir la documention](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket.html#cfn-s3-bucket-lifecycleconfig)
+[voir la documentation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-s3-bucket-lifecycleconfig.html)
 
 Déployer
 ```
@@ -75,10 +75,16 @@ Regarder l'exemple pour avoir la structure de `PolicyDocument`. Les propriétés
 * Resource = Arn du bucket avec les sous prefixes `!Sub "arn:aws:s3:::${Bucket}"`
 * Condition = Type `StringNotLikeIfExists` `s3:x-amz-server-side-encryption-aws-kms-key-id: !Ref KMSKeyArn`
 
+Déployer
+```
+./deploy/sapient-formation.sh tp2-deploy-s3 dev phone
+```
 
 ## Étape 5 : Upload de données dans le bucket
 
 Pour vérifier que votre configuration est correcte (chiffrement et versioning), vous pouvez uploader un fichier dans le bucket.
+
+NB : Modifier la valeur <trainee> par la vôtre avant de lancer la commande
 
 ```shell
 # L'upload du fichier se fait sans spécifier de chiffrement, la configuration du bucket entre en jeu
@@ -91,7 +97,7 @@ Quand vous naviguez à l'aide de la console AWS sur le fichier, vous devriez voi
 
 Uploader un fichier en spécifiant le chiffrement S3-SSE. Une erreur se produira car la bucket policy l'interdit
 ```
-aws s3 cp data/phone/customer.csv s3://<trainee>-source-phone-dev/incoming/customers.csv --sse AES256
+aws s3 cp data/phone/customers.csv s3://<trainee>-source-phone-dev/incoming/customers.csv --sse AES256
 upload failed: data/phone/customers.csv to s3://<trainee>-source-phone-dev/customers.csv An error occurred (AccessDenied) 
 when calling the PutObject operation: Access Denied
 ```
