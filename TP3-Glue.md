@@ -1,4 +1,4 @@
-
+# TP3-GLUE
 Le but de cet exercice est de créer et déployer un job Glue.
 
 Le script `.scala` du job est fourni dans le répertoire `csvtoparquet` à la racine du projet.
@@ -22,7 +22,7 @@ Prenez connaissance de son contenu et déployez-le avec la commande suivante :
 ```shell
 ./deploy/sapient-formation.sh tp3-deploy-artifacts dev
 ```
-Vérifiez grâce à la console que le bucket a bien été créé.
+Vérifiez grâce à [la console](https://eu-west-1.console.aws.amazon.com/console/home?region=eu-west-1) que le bucket a bien été créé.
 
 ## Étape 2 : Déployer la stack Catalog
 Le job Glue va automatiquement peupler le data catalog. Il est nécessaire de créer en amont la base de données qui contiendra les tables.
@@ -32,11 +32,11 @@ La définition de la base de données se trouve dans le template `tp3/catalog.ya
 ./deploy/sapient-formation.sh tp3-deploy-catalog dev phone
 ```
 
-Vérifiez grâce à la console que la base de données a bien été créée.
+Vérifiez grâce à [la console](https://eu-west-1.console.aws.amazon.com/console/home?region=eu-west-1) que la base de données a bien été créée dans le service Glue
 
 ## Étape 3 : Créer le job Glue
 Le template contenant le job Glue et son rôle associé se trouve ici : `deploy/cloudformation/templates/tp3/glue.yaml`.
-Complétez-le en vous aidant des exemples donné dans le cours.
+Complétez-le en vous aidant des exemples donnés dans le cours.
 
 Quelques informations importantes : 
 * Pensez bien à regarder les paramètres d'entrée de la stack, ils seront utiles.
@@ -69,7 +69,7 @@ Pour déployer votre job lancez la commande suivante :
 ```shell
 ./deploy/sapient-formation.sh tp3-deploy-glue dev
 ```
-Dans la mesure où Maven n'est pas installé sur Cloud9 et que son installation et le téléchargement des dépendances prend en certain temps, 
+Dans la mesure où Maven n'est pas installé sur Cloud9 et que son installation et le téléchargement des dépendances prend un certain temps, 
 nous avons fourni le jar qui se trouve dans le répertoire `csvtoparquet/jar/`. C'est celui-ci qui est uploadé par la fonction `tp3-deploy-glue`.
 Les commandes à exécuter en temps normal se trouvent dans la fonction `tp3-deploy-glue` mais sont commentées.
 
@@ -80,6 +80,9 @@ Cette commande a 2 étapes :
 
 ## Étape 6 : Lancer le job
 Pour lancer le job exécuter d'abord la commande suivante pour uploader des données dans le bucket : 
+
+NB : Modifier la valeur <trainee> par la vôtre avant de lancer la commande
+
 ```shell
 aws s3 cp data/phone/customers.csv s3://<trainee>-source-phone-dev/raw-data/phone/customers/customers.csv
 ```
@@ -89,6 +92,6 @@ Lancez le job Glue avec la commande suivante :
 aws glue start-job-run --job-name dev-csv-to-parquet --arguments '{"--table_name": "customers", "--database_name": "dev-phone", "--input_path": "s3://<trainee>-source-phone-dev/raw-data/phone/customers", "--output_path": "s3://<trainee>-source-phone-dev/prepared-data/phone/customers"}'
 ```
 
-Vérifiez dans la console que le job s'est bien exécuté avec succès.
+Vérifiez dans [la console](https://eu-west-1.console.aws.amazon.com/console/home?region=eu-west-1) que le job s'est bien exécuté avec succès.
 
 Nous allons voir dans les prochains chapitres comment déclencher un job Glue au sein d'un pipeline complet de données.

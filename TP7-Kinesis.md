@@ -1,4 +1,4 @@
-# Kinesis Workshop
+# TP7-KINESIS
 Le but de cet exercice est de déployer une application en temps réel via Kinesis.
 
 ## Le use case
@@ -106,7 +106,7 @@ script/tp7/putRecordsKinesis.py
 ```
 Remarquez que nous utilisons la fonction ```putRecord```.
 
-Pour lancer le script, veuillez exécuter la commande suivante en utilisant le bon nom du stream Kinesis:
+Pour lancer le script, veuillez exécuter la commande suivante en utilisant le bon nom du stream Kinesis que vous pouvez récupérer directement dans le service Kinesis :
 ```shell
 python script/tp7/putRecordsKinesis.py <Nom du stream Kinesis créé>
 ```
@@ -125,6 +125,6 @@ Pour consulter facilement un fichier, utilisons la fonction Query with S3 Select
 
 ![s3select1](./documentation/tp7/s3select1.png "s3 select 1")
 
-Puis:
+Puis :
 
 ![s3select2](./documentation/tp7/s3select2.png "s3 select 2")

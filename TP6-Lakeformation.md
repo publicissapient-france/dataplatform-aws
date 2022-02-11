@@ -1,4 +1,8 @@
-# LakeFormation Workshop
+# TP6-LAKE FORMATION
+Avant de commencer, assurez-vous d'être dans le dossier `dataplatform-aws` 
+```shell
+cd dataplatform-aws/
+```
 Le but de cet exercice est d'utiliser lake formation pour sécuriser l'accès à des données requêtées via Athena.
 
 Nous utiliserons aussi un crawler pour alimenter notre data platform.
@@ -71,36 +75,51 @@ Puis :
 ![LakeFormation11](./documentation/tp6/LakeFormation_11.png "LakeFormation11")
 
 ## Étape 4 : Déposer le fichier sur S3 et lancer le crawler
+Récupérer tout d'abord l'ID de votre compte AWS :
+![Id_compte](./documentation/tp6/Id_compte.png "Id_compte")
+
+NB : Modifier la valeur '<AWS::AccountId>' par la vôtre avant de lancer la commande
 
 ```shell
-# Remplacer par votre account ID
 aws s3 cp data/titanic/passengers.csv s3://lake-formation-demo-source-eu-west-1-<AWS::AccountId>/passengers.csv
 ```
 
-Puis:
+Puis lancer le crawler :
 ```shell
 aws glue start-crawler --name lake-formation-demo-crawler
 ```
+Vous pouvez suivre son avancement [ici](https://eu-west-1.console.aws.amazon.com/glue/home?region=eu-west-1#catalog:tab=crawlers).
+
+Une fois le crawler passé au statut `Ready` passez à l'étape 5. 
 
 ## Étape 5 : Donner les droits requis au data analyst
 Dans cette étape, nous allons affecter les droits nécessaires au data analyst avec Lake Formation.
-Pour cela, allez au service Lake Formation puis dans le panel `Tables` cliquez sur `Grant` en sélectionnant la table nouvellement créée:
+
+Pour créer un filtre sur les données rendez vous [ici](https://eu-west-1.console.aws.amazon.com/lakeformation/home?region=eu-west-1#data-filters),
+puis créer le filtre suivant :
+![LakeFormation7.2](./documentation/tp6/LakeFormation_7.2.png "LakeFormation7.2")
+Notez aussi qu'on peut faire l'opération inverse, en ne donnant pas accès à certaines colonnes.
+La valeur `true` dans la partie Row filter expression permet de dire qu'on peut accéder à toutes les données de ces champs,
+car il est possible de ne donner accès qu'à une catégorie de donnée (par exemple uniquement aux personnes majeures en appliquant le filtre age>=18).
+
+Puis, allez au service Lake Formation puis dans le panel `Tables` cliquez sur `Grant` en sélectionnant la table nouvellement créée:
 ![LakeFormation8](./documentation/tp6/LakeFormation_8.png "LakeFormation8")
 
-À ce niveau, sélectionner le user créé avec les droits désirés, notez aussi qu'on peut faire l'opération inverse, 
-en ne donnant pas accès à certaines colonnes. De plus, si l'on souhaite, notre user pourra lui même affecter des droits à un autre user si
-on coche les cases `Grantable permissions`:
-![LakeFormation7](./documentation/tp6/LakeFormation_7.png "LakeFormation7")
+À partir de là vous pouvez affecter le filtre qu'on vient de créer au user `DataAnalyst`:
+![LakeFormation7.3](./documentation/tp6/LakeFormation_7.3.png "LakeFormation7.3")
 
 ## Étape 6 : Tester les droits en tant que data analyst:
-Connectez vous via un autre navigateur web ou dans un onglet privé à l'interface de connexion de la [Console AWS](https://console.aws.amazon.com).
+Connectez-vous via un autre navigateur web ou dans un onglet privé à l'interface de connexion de la [Console AWS](https://console.aws.amazon.com).
 Puis renseignez votre ID de compte, le user `DataAnalyst` ainsi que son mot de passe `Azerty123!`.
+
+NB : Une fois connecté vérifiez bien que la région spécifiée est `Irlande`.
+
 Reportez-vous ensuite sur le service Athena et configurer le bucket de sortie des requêtes:
 ![LakeFormation5](./documentation/tp6/LakeFormation_5.png "LakeFormation5")
 Puis :
 ![LakeFormation4](./documentation/tp6/LakeFormation_4.png "LakeFormation4")
 
-Réaliser un select sur la table et notez qu'on ne retrouve que les colonnes définies plus haut qui sont exposés et pas les autres :
+Notez qu'on ne retrouve que les colonnes définies plus haut qui sont exposés et pas les autres :
 ![LakeFormation3](./documentation/tp6/LakeFormation_3.png "LakeFormation3")
 
 Essayez maintenant de supprimer cette table, vous constaterez que ce n'est pas possible, une erreur `Insufficient Lake Formation Permission(s)`est remontée: 

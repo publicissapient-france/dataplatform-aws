@@ -1,4 +1,4 @@
-
+# TP1-SETUP
 Le but de cet exercice est de déployer de prendre en main cloudformation/sceptre et de vérifier que vous êtes en mesure 
 de déployer des stacks sur vos comptes.
 
